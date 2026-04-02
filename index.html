@@ -1,1060 +1,304 @@
-<a href="tax1.html">关于页面</a>
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <div class="info-box">
-                <p>💡本系统属于模拟系统，仅用于学习交流，具体依税务实际征税为准!加微信进群13519445134</p>
-            </div>
-    <title>增值税及附加税费申报表（小规模纳税人适用）</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <title>🧰 工具箱</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f5f7fa; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #1890ff; padding-bottom: 20px; }
-        .header h1 { color: #1890ff; font-size: 24px; margin-bottom: 15px; }
-        .header-info { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; font-size: 14px; color: #666; }
-        .header-info span { background: #f0f7ff; padding: 8px 15px; border-radius: 4px; }
-        .header-info input { border: none; background: transparent; width: 150px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; background: #f0f0f0; color: #333; }
-        .tab-btn.active { background: #1890ff; color: #fff; }
-        .tab-btn:hover:not(.active) { background: #e6e6e6; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
-        th, td { border: 1px solid #d9d9d9; padding: 10px 8px; text-align: center; }
-        th { background: #fafafa; font-weight: 600; color: #333; }
-        tr:nth-child(even) { background: #fafafa; }
-        tr:hover { background: #e6f7ff; }
-        .input-cell { width: 100px; padding: 6px 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; text-align: right; }
-        .input-cell:focus { border-color: #1890ff; outline: none; box-shadow: 0 0 0 2px rgba(24,144,255,0.2); }
-        .input-cell.readonly { background: #f5f5f5; color: #666; }
-        .input-text { width: 200px; padding: 6px 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; }
-        .input-text:focus { border-color: #1890ff; outline: none; box-shadow: 0 0 0 2px rgba(24,144,255,0.2); }
-        .select-cell { padding: 6px 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; background: #fff; }
-        .section-title { background: #1890ff; color: #fff; padding: 10px 15px; font-weight: 600; margin: 20px 0 10px 0; border-radius: 4px; }
-        .info-box { background: #e6f7ff; border: 1px solid #91d5ff; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .info-box p { margin: 5px 0; color: #0050b3; font-size: 14px; }
-        .footer { margin-top: 30px; padding-top: 20px; border-top: 2px solid #e8e8e8; }
-        .footer-info { display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 20px; font-size: 14px; color: #333; }
-        .footer-info span { font-weight: 600; color: #1890ff; }
-        .btn-group { display: flex; gap: 15px; flex-wrap: wrap; }
-        .btn { padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
-        .btn-reset { background: #ff4d4f; color: #fff; }
-        .btn-reset:hover { background: #ff7875; }
-        .btn-export { background: #52c41a; color: #fff; }
-        .btn-export:hover { background: #73d13d; }
-        .btn-save { background: #1890ff; color: #fff; }
-        .btn-save:hover { background: #40a9ff; }
-        @media print { .btn-group, .tabs { display: none; } body { background: #fff; } .container { box-shadow: none; } }
-        @media (max-width: 768px) { table { font-size: 11px; } th, td { padding: 6px 4px; } .input-cell { width: 70px; } }
+        
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .header-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .search-box {
+            display: flex;
+            background: white;
+            border-radius: 50px;
+            padding: 0.5rem;
+            box-shadow: var(--shadow);
+            max-width: 500px;
+            margin: 0 auto 2rem;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            outline: none;
+            border-radius: 50px;
+        }
+
+        .search-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover { background: var(--primary-dark); }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .tool-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .tool-card.disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .tool-card.disabled:hover {
+            transform: none;
+            border-color: transparent;
+        }
+
+        .tool-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tool-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .tool-desc {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            line-height: 1.5;
+        }
+
+        .tool-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            text-decoration: none;
+        }
+
+        .tool-card.disabled .tool-link {
+            color: var(--text-sub);
+        }
+
+        .arrow { transition: transform 0.3s; }
+        .tool-link:hover .arrow { transform: translateX(4px); }
+
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 3rem;
+        }
+
+        .footer-box {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-box p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 3rem;
+            display: none;
+        }
+
+        .empty-state.active { display: block; }
+        .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.6; }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.5rem; }
+            .tools-grid { grid-template-columns: 1fr; }
+            .search-box { flex-direction: column; border-radius: 16px; }
+            .search-input { border-radius: 12px; margin-bottom: 0.5rem; }
+            .search-btn { width: 100%; border-radius: 12px; }
+        }
     </style>
 </head>
 <body>
-    <div id="app">
-        <div class="container">
-            <div class="header">
-                <h1>📄 增值税及附加税费申报表（小规模纳税人适用）</h1>
-                <div class="header-info">
-                    <span>纳税人识别号 (统一社会信用代码)：<input type="text" v-model="form.taxId"></span>
-                    <span>纳税人名称：<input type="text" v-model="form.taxpayerName"></span>
-                    <span>金额单位：元（列至角分）</span>
-                    <span>税款所属期：<input type="date" v-model="form.periodStart"> 至 <input type="date" v-model="form.periodEnd"></span>
-                    <span>填表日期：<input type="date" v-model="form.fillDate"></span>
-                </div>
-            </div>
+    <div class="container">
+        <header class="header">
+            <div class="header-icon">🧰</div>
+            <h1>工具箱</h1>
+            <p>一站式在线工具集合，便捷高效的计算辅助</p>
+        </header>
 
-            <div class="tabs">
-                <button class="tab-btn" :class="{active: activeTab === 'main'}" @click="activeTab = 'main'">📄 主表</button>
-                <button class="tab-btn" :class="{active: activeTab === 'app1'}" @click="activeTab = 'app1'">📋 附列资料（一）</button>
-                <button class="tab-btn" :class="{active: activeTab === 'app2'}" @click="activeTab = 'app2'">📋 附列资料（二）</button>
-                <button class="tab-btn" :class="{active: activeTab === 'reduction'}" @click="activeTab = 'reduction'">📋 减免税明细表</button>
-                <button class="tab-btn" :class="{active: activeTab === 'app4'}" @click="activeTab = 'app4'">📋 附列资料（四）</button>
-                <button class="tab-btn" :class="{active: activeTab === 'prepay'}" @click="activeTab = 'prepay'">📋 预缴表</button>
-            </div>
-
-            <div class="info-box">
-                <p>💡本系统属于模拟系统，仅用于学习交流，具体依税务实际征税为准!加微信进群13519445134</p>
-            </div>
-
-            <!-- 主表 -->
-            <div class="tab-content" :class="{active: activeTab === 'main'}">
-                <div class="section-title">一、计税依据</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>项目</th>
-                            <th>栏次</th>
-                            <th>本期数<br>货物及劳务</th>
-                            <th>本期数<br>服务、不动产和无形资产</th>
-                            <th>本年累计<br>货物及劳务</th>
-                            <th>本年累计<br>服务、不动产和无形资产</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>（一）应征增值税不含税销售额（3% 征收率）</td><td>1</td><td><input type="number" class="input-cell" v-model.number="main.row1_goods" @blur="updateYear('row1_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row1_service" @blur="updateYear('row1_service')"></td><td class="readonly">{{ formatNumber(main.row1_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row1_service_year) }}</td></tr>
-                        <tr><td>增值税专用发票不含税销售额</td><td>2</td><td><input type="number" class="input-cell" v-model.number="main.row2_goods" @blur="updateYear('row2_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row2_service" @blur="updateYear('row2_service')"></td><td class="readonly">{{ formatNumber(main.row2_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row2_service_year) }}</td></tr>
-                        <tr><td>其他增值税发票不含税销售额</td><td>3</td><td><input type="number" class="input-cell" v-model.number="main.row3_goods" @blur="updateYear('row3_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row3_service" @blur="updateYear('row3_service')"></td><td class="readonly">{{ formatNumber(main.row3_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row3_service_year) }}</td></tr>
-                        <tr><td>（二）应征增值税不含税销售额（5% 征收率）</td><td>4</td><td><input type="number" class="input-cell" v-model.number="main.row4_goods" @blur="updateYear('row4_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row4_service" @blur="updateYear('row4_service')"></td><td class="readonly">{{ formatNumber(main.row4_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row4_service_year) }}</td></tr>
-                        <tr><td>增值税专用发票不含税销售额</td><td>5</td><td><input type="number" class="input-cell" v-model.number="main.row5_goods" @blur="updateYear('row5_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row5_service" @blur="updateYear('row5_service')"></td><td class="readonly">{{ formatNumber(main.row5_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row5_service_year) }}</td></tr>
-                        <tr><td>其他增值税发票不含税销售额</td><td>6</td><td><input type="number" class="input-cell" v-model.number="main.row6_goods" @blur="updateYear('row6_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row6_service" @blur="updateYear('row6_service')"></td><td class="readonly">{{ formatNumber(main.row6_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row6_service_year) }}</td></tr>
-                        <tr><td>（三）销售使用过的固定资产不含税销售额</td><td>7(7≥8)</td><td><input type="number" class="input-cell" v-model.number="main.row7_goods" @blur="updateYear('row7_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row7_service" @blur="updateYear('row7_service')"></td><td class="readonly">{{ formatNumber(main.row7_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row7_service_year) }}</td></tr>
-                        <tr><td>其中：其他增值税发票不含税销售额</td><td>8</td><td><input type="number" class="input-cell" v-model.number="main.row8_goods" @blur="updateYear('row8_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row8_service" @blur="updateYear('row8_service')"></td><td class="readonly">{{ formatNumber(main.row8_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row8_service_year) }}</td></tr>
-                        <tr><td>（四）免税销售额</td><td>9=10+11+12</td><td><input type="number" class="input-cell" v-model.number="main.row9_goods" @blur="updateYear('row9_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row9_service" @blur="updateYear('row9_service')"></td><td class="readonly">{{ formatNumber(main.row9_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row9_service_year) }}</td></tr>
-                        <tr><td>其中：小微企业免税销售额</td><td>10</td><td><input type="number" class="input-cell" v-model.number="main.row10_goods" @blur="updateYear('row10_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row10_service" @blur="updateYear('row10_service')"></td><td class="readonly">{{ formatNumber(main.row10_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row10_service_year) }}</td></tr>
-                        <tr><td>未达起征点销售额</td><td>11</td><td><input type="number" class="input-cell" v-model.number="main.row11_goods" @blur="updateYear('row11_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row11_service" @blur="updateYear('row11_service')"></td><td class="readonly">{{ formatNumber(main.row11_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row11_service_year) }}</td></tr>
-                        <tr><td>其他免税销售额</td><td>12</td><td><input type="number" class="input-cell" v-model.number="main.row12_goods" @blur="updateYear('row12_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row12_service" @blur="updateYear('row12_service')"></td><td class="readonly">{{ formatNumber(main.row12_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row12_service_year) }}</td></tr>
-                        <tr><td>（五）出口免税销售额</td><td>13(13≥14)</td><td><input type="number" class="input-cell" v-model.number="main.row13_goods" @blur="updateYear('row13_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row13_service" @blur="updateYear('row13_service')"></td><td class="readonly">{{ formatNumber(main.row13_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row13_service_year) }}</td></tr>
-                        <tr><td>其中：其他增值税发票不含税销售额</td><td>14</td><td><input type="number" class="input-cell" v-model.number="main.row14_goods" @blur="updateYear('row14_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row14_service" @blur="updateYear('row14_service')"></td><td class="readonly">{{ formatNumber(main.row14_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row14_service_year) }}</td></tr>
-                    </tbody>
-                </table>
-
-                <div class="section-title">二、税款计算</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>项目</th>
-                            <th>栏次</th>
-                            <th>本期数<br>货物及劳务</th>
-                            <th>本期数<br>服务、不动产和无形资产</th>
-                            <th>本年累计<br>货物及劳务</th>
-                            <th>本年累计<br>服务、不动产和无形资产</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>本期应纳税额</td><td>15</td><td class="readonly">{{ formatNumber(calc.row15_goods) }}</td><td class="readonly">{{ formatNumber(calc.row15_service) }}</td><td class="readonly">{{ formatNumber(calc.row15_goods_year) }}</td><td class="readonly">{{ formatNumber(calc.row15_service_year) }}</td></tr>
-                        <tr><td>本期应纳税额减征额</td><td>16</td><td><input type="number" class="input-cell" v-model.number="main.row16_goods" @blur="updateYear('row16_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row16_service" @blur="updateYear('row16_service')"></td><td class="readonly">{{ formatNumber(main.row16_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row16_service_year) }}</td></tr>
-                        <tr><td>本期免税额</td><td>17</td><td class="readonly">{{ formatNumber(calc.row17_goods) }}</td><td class="readonly">{{ formatNumber(calc.row17_service) }}</td><td class="readonly">{{ formatNumber(calc.row17_goods_year) }}</td><td class="readonly">{{ formatNumber(calc.row17_service_year) }}</td></tr>
-                        <tr><td>其中：小微企业免税额</td><td>18</td><td class="readonly">{{ formatNumber(calc.row18_goods) }}</td><td class="readonly">{{ formatNumber(calc.row18_service) }}</td><td class="readonly">{{ formatNumber(calc.row18_goods_year) }}</td><td class="readonly">{{ formatNumber(calc.row18_service_year) }}</td></tr>
-                        <tr><td>未达起征点免税额</td><td>19</td><td class="readonly">{{ formatNumber(calc.row19_goods) }}</td><td class="readonly">{{ formatNumber(calc.row19_service) }}</td><td class="readonly">{{ formatNumber(calc.row19_goods_year) }}</td><td class="readonly">{{ formatNumber(calc.row19_service_year) }}</td></tr>
-                        <tr><td>应纳税额合计 20=15-16</td><td>20</td><td class="readonly">{{ formatNumber(calc.row20_goods) }}</td><td class="readonly">{{ formatNumber(calc.row20_service) }}</td><td class="readonly">{{ formatNumber(calc.row20_goods_year) }}</td><td class="readonly">{{ formatNumber(calc.row20_service_year) }}</td></tr>
-                        <tr><td>本期预缴税额</td><td>21</td><td><input type="number" class="input-cell" v-model.number="main.row21_goods" @blur="updateYear('row21_goods')"></td><td><input type="number" class="input-cell" v-model.number="main.row21_service" @blur="updateYear('row21_service')"></td><td class="readonly">{{ formatNumber(main.row21_goods_year) }}</td><td class="readonly">{{ formatNumber(main.row21_service_year) }}</td></tr>
-                        <tr><td>本期应补（退）税额 22=20-21</td><td>22</td><td class="readonly">{{ formatNumber(calc.row22_goods) }}</td><td class="readonly">{{ formatNumber(calc.row22_service) }}</td><td class="readonly">{{ formatNumber(calc.row22_goods_year) }}</td><td class="readonly">{{ formatNumber(calc.row22_service_year) }}</td></tr>
-                    </tbody>
-                </table>
-
-                <div class="section-title">三、附加税费</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>项目</th>
-                            <th>栏次</th>
-                            <th>本期数</th>
-                            <th>本年累计</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>城市维护建设税本期应补（退）税额</td><td>23</td><td class="readonly">{{ formatNumber(calc.row23) }}</td><td class="readonly">{{ formatNumber(calc.row23_year) }}</td></tr>
-                        <tr><td>教育费附加本期应补（退）费额</td><td>24</td><td class="readonly">{{ formatNumber(calc.row24) }}</td><td class="readonly">{{ formatNumber(calc.row24_year) }}</td></tr>
-                        <tr><td>地方教育附加本期应补（退）费额</td><td>25</td><td class="readonly">{{ formatNumber(calc.row25) }}</td><td class="readonly">{{ formatNumber(calc.row25_year) }}</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 附列资料（一） -->
-            <div class="tab-content" :class="{active: activeTab === 'app1'}">
-                <div class="section-title">应税行为（3% 征收率）扣除额计算</div>
-                <table>
-                    <thead>
-                        <tr><th>期初余额</th><th>本期发生额</th><th>本期扣除额</th><th>期末余额</th></tr>
-                        <tr><th>1</th><th>2</th><th>3（3≤1＋2 之和，且 3≤5）</th><th>4＝1＋2－3</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><input type="number" class="input-cell" v-model.number="app1.row1" @input="calculateApp1"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app1.row2" @input="calculateApp1"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app1.row3" @input="calculateApp1"></td>
-                            <td class="readonly">{{ formatNumber(app1Calc.row4) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div class="section-title">应税行为（3% 征收率）计税销售额计算</div>
-                <table>
-                    <thead>
-                        <tr><th>全部含税收入（适用 3% 征收率）</th><th>本期扣除额</th><th>含税销售额</th><th>不含税销售额</th></tr>
-                        <tr><th>5</th><th>6=3</th><th>7＝5－6</th><th>8</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><input type="number" class="input-cell" v-model.number="app1.row5" @input="calculateApp1"></td>
-                            <td class="readonly">{{ formatNumber(app1Calc.row6) }}</td>
-                            <!-- 修改点：含税销售额（第7栏）改为自动计算：5-6 -->
-                            <td class="readonly">{{ formatNumber(app1Calc.row7) }}</td>
-                            <!-- 修改点：不含税销售额（第8栏）改为手动输入 -->
-                            <td><input type="number" class="input-cell" v-model.number="app1.row8"></td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div class="section-title">应税行为（5% 征收率）扣除额计算</div>
-                <table>
-                    <thead>
-                        <tr><th>期初余额</th><th>本期发生额</th><th>本期扣除额</th><th>期末余额</th></tr>
-                        <tr><th>9</th><th>10</th><th>11（11≤9＋10 之和，且 11≤13）</th><th>12＝9＋10－11</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><input type="number" class="input-cell" v-model.number="app1.row9" @input="calculateApp1"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app1.row10" @input="calculateApp1"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app1.row11" @input="calculateApp1"></td>
-                            <td class="readonly">{{ formatNumber(app1Calc.row12) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div class="section-title">应税行为（5% 征收率）计税销售额计算</div>
-                <table>
-                    <thead>
-                        <tr><th>全部含税收入（适用 5% 征收率）</th><th>本期扣除额</th><th>含税销售额</th><th>不含税销售额</th></tr>
-                        <tr><th>13</th><th>14=11</th><th>15＝13－14</th><th>16</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><input type="number" class="input-cell" v-model.number="app1.row13" @input="calculateApp1"></td>
-                            <td class="readonly">{{ formatNumber(app1Calc.row14) }}</td>
-                            <!-- 修改点：含税销售额（第15栏）改为自动计算：13-14 -->
-                            <td class="readonly">{{ formatNumber(app1Calc.row15) }}</td>
-                            <!-- 修改点：不含税销售额（第16栏）改为手动输入 -->
-                            <td><input type="number" class="input-cell" v-model.number="app1.row16"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 附列资料（二） -->
-            <div class="tab-content" :class="{active: activeTab === 'app2'}">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>税（费）种</th>
-                            <th>计税（费）依据</th>
-                            <th>税（费）率（%）</th>
-                            <th>本期应纳税（费）额</th>
-                            <th>减免性质代码</th>
-                            <th>减免税（费）额</th>
-                            <th>减征比例（%）</th>
-                            <th>减征额</th>
-                            <th>本期已缴税（费）额</th>
-                            <th>本期应补（退）税（费）额</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>城市维护建设税</td>
-                            <td class="readonly">{{ formatNumber(calc.totalVatPayable) }}</td>
-                            <td><select class="select-cell" v-model="app2.cityRate" @change="calculateApp2"><option value="7">7%</option><option value="5">5%</option><option value="1">1%</option></select></td>
-                            <td class="readonly">{{ formatNumber(calc.surchargeCityGross) }}</td>
-                            <td><input type="text" class="input-text" v-model="app2.cityReductionCode" placeholder="手动填写减免性质代码"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app2.cityReductionAmount" @input="calculateApp2" placeholder="手动输入减免额"></td>
-                            <td><select class="select-cell" v-model="app2.cityDeductionRate" @change="calculateApp2"><option value="50">50%</option><option value="0">0%</option></select></td>
-                            <td class="readonly">{{ formatNumber(calc.surchargeCityDeduction) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="app2.cityPaid" @input="calculateApp2"></td>
-                            <td class="readonly">{{ formatNumber(calc.row23) }}</td>
-                        </tr>
-                        <tr>
-                            <td>教育费附加</td>
-                            <td class="readonly">{{ formatNumber(calc.totalVatPayable) }}</td>
-                            <td>3%</td>
-                            <td class="readonly">{{ formatNumber(calc.surchargeEduGross) }}</td>
-                            <td><input type="text" class="input-text" v-model="app2.eduReductionCode" placeholder="手动填写减免性质代码"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app2.eduReductionAmount" @input="calculateApp2" placeholder="手动输入减免额"></td>
-                            <td><select class="select-cell" v-model="app2.eduDeductionRate" @change="calculateApp2"><option value="50">50%</option><option value="0">0%</option></select></td>
-                            <td class="readonly">{{ formatNumber(calc.surchargeEduDeduction) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="app2.eduPaid" @input="calculateApp2"></td>
-                            <td class="readonly">{{ formatNumber(calc.row24) }}</td>
-                        </tr>
-                        <tr>
-                            <td>地方教育附加</td>
-                            <td class="readonly">{{ formatNumber(calc.totalVatPayable) }}</td>
-                            <td>2%</td>
-                            <td class="readonly">{{ formatNumber(calc.surchargeLocalEduGross) }}</td>
-                            <td><input type="text" class="input-text" v-model="app2.localEduReductionCode" placeholder="手动填写减免性质代码"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app2.localEduReductionAmount" @input="calculateApp2" placeholder="手动输入减免额"></td>
-                            <td><select class="select-cell" v-model="app2.localEduDeductionRate" @change="calculateApp2"><option value="50">50%</option><option value="0">0%</option></select></td>
-                            <td class="readonly">{{ formatNumber(calc.surchargeLocalEduDeduction) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="app2.localEduPaid" @input="calculateApp2"></td>
-                            <td class="readonly">{{ formatNumber(calc.row25) }}</td>
-                        </tr>
-                        <tr>
-                            <td>合计</td>
-                            <td>——</td>
-                            <td>——</td>
-                            <td class="readonly">{{ formatNumber(calc.surchargeTotalGross) }}</td>
-                            <td>——</td>
-                            <td class="readonly">{{ formatNumber((app2.cityReductionAmount || 0) + (app2.eduReductionAmount || 0) + (app2.localEduReductionAmount || 0)) }}</td>
-                            <td>——</td>
-                            <td class="readonly">{{ formatNumber(calc.surchargeTotalDeduction) }}</td>
-                            <td class="readonly">{{ formatNumber(app2.cityPaid + app2.eduPaid + app2.localEduPaid) }}</td>
-                            <td class="readonly">{{ formatNumber(calc.surchargeTotal) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 减免税明细表 -->
-            <div class="tab-content" :class="{active: activeTab === 'reduction'}">
-                <div class="section-title">一、减税项目</div>
-                <table>
-                    <thead>
-                        <tr><th>减税性质代码及名称</th><th>栏次</th><th>期初余额</th><th>本期发生额</th><th>本期应抵减税额</th><th>本期实际抵减税额</th><th>期末余额</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>合计</td><td>1</td><td class="readonly">{{ formatNumber(reductionCalc.totalStart) }}</td><td class="readonly">{{ formatNumber(reductionCalc.totalCurrent) }}</td><td class="readonly">{{ formatNumber(reductionCalc.totalShould) }}</td><td class="readonly">{{ formatNumber(reductionCalc.totalActual) }}</td><td class="readonly">{{ formatNumber(reductionCalc.totalEnd) }}</td></tr>
-                        <tr>
-                            <td><input type="text" class="input-text" v-model="reduction.type2" placeholder="手动填写减税性质代码"></td>
-                            <td>2</td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type2Start" @input="calculateReduction"></td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type2Current" @input="calculateReduction"></td>
-                            <td class="readonly">{{ formatNumber(reductionCalc.type2Should) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type2Actual" @input="calculateReduction"></td>
-                            <td class="readonly">{{ formatNumber(reductionCalc.type2End) }}</td>
-                        </tr>
-                        <tr>
-                            <td><input type="text" class="input-text" v-model="reduction.type3" placeholder="手动填写减税性质代码"></td>
-                            <td>3</td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type3Start" @input="calculateReduction"></td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type3Current" @input="calculateReduction"></td>
-                            <td class="readonly">{{ formatNumber(reductionCalc.type3Should) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type3Actual" @input="calculateReduction"></td>
-                            <td class="readonly">{{ formatNumber(reductionCalc.type3End) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div class="section-title">二、免税项目</div>
-                <table>
-                    <thead>
-                        <tr><th>免税性质代码及名称</th><th>栏次</th><th>免征增值税项目销售额</th><th>免税销售额扣除项目本期实际扣除金额</th><th>扣除后免税销售额</th><th>免税销售额对应的进项税额</th><th>免税额</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>合计</td><td>7</td><td class="readonly">{{ formatNumber(reductionCalc.exemptSalesTotal) }}</td><td class="readonly">{{ formatNumber(reductionCalc.exemptDeductionTotal) }}</td><td class="readonly">{{ formatNumber(reductionCalc.exemptSalesNetTotal) }}</td><td class="readonly">{{ formatNumber(reductionCalc.exemptInputTaxTotal) }}</td><td class="readonly">{{ formatNumber(reductionCalc.exemptTaxAmountTotal) }}</td></tr>
-                        <tr><td>出口免税</td><td>8</td><td>——</td><td>——</td><td>——</td><td>——</td><td>——</td></tr>
-                        <tr><td>其中：跨境服务</td><td>9</td><td>——</td><td>——</td><td>——</td><td>——</td><td>——</td></tr>
-                        <tr>
-                            <td><input type="text" class="input-text" v-model="reduction.type10" placeholder="手动填写免税性质代码"></td>
-                            <td>10</td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type10Sales" @input="calculateReduction"></td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type10Deduction" @input="calculateReduction"></td>
-                            <td class="readonly">{{ formatNumber(reductionCalc.type10Net) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type10Input" @input="calculateReduction"></td>
-                            <td class="readonly">{{ formatNumber(reductionCalc.type10TaxAmount) }}</td>
-                        </tr>
-                        <tr>
-                            <td><input type="text" class="input-text" v-model="reduction.type11" placeholder="手动填写免税性质代码"></td>
-                            <td>11</td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type11Sales" @input="calculateReduction"></td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type11Deduction" @input="calculateReduction"></td>
-                            <td class="readonly">{{ formatNumber(reductionCalc.type11Net) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="reduction.type11Input" @input="calculateReduction"></td>
-                            <td class="readonly">{{ formatNumber(reductionCalc.type11TaxAmount) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 附列资料（四） -->
-            <div class="tab-content" :class="{active: activeTab === 'app4'}">
-                <table>
-                    <thead>
-                        <tr><th>序号</th><th>抵减项目</th><th>期初余额</th><th>本期发生额</th><th>本期应抵减税额</th><th>本期实际抵减税额</th><th>期末余额</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>增值税税控系统专用设备费及技术维护费</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row1Start" @input="calculateApp4"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row1Current" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row1Should) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row1Actual" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row1End) }}</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>分支机构预征缴纳税款</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row2Start" @input="calculateApp4"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row2Current" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row2Should) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row2Actual" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row2End) }}</td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>建筑服务预征缴纳税款</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row3Start" @input="calculateApp4"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row3Current" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row3Should) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row3Actual" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row3End) }}</td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td>销售不动产预征缴纳税款</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row4Start" @input="calculateApp4"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row4Current" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row4Should) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row4Actual" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row4End) }}</td>
-                        </tr>
-                        <tr>
-                            <td>5</td>
-                            <td>出租不动产预征缴纳税款</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row5Start" @input="calculateApp4"></td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row5Current" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row5Should) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="app4.row5Actual" @input="calculateApp4"></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.row5End) }}</td>
-                        </tr>
-                        <tr>
-                            <td>合计</td>
-                            <td></td>
-                            <td class="readonly">{{ formatNumber(app4Calc.totalStart) }}</td>
-                            <td class="readonly">{{ formatNumber(app4Calc.totalCurrent) }}</td>
-                            <td class="readonly">{{ formatNumber(app4Calc.totalShould) }}</td>
-                            <td class="readonly">{{ formatNumber(app4Calc.totalActual) }}</td>
-                            <td class="readonly">{{ formatNumber(app4Calc.totalEnd) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="info-box" style="margin-top:20px;">
-                    <p>填写说明：</p>
-                    <p>• 本期应抵减税额 = 期初余额 + 本期发生额</p>
-                    <p>• 本期实际抵减税额 ≤ 本期应抵减税额</p>
-                    <p>• 期末余额 = 本期应抵减税额 - 本期实际抵减税额</p>
-                </div>
-            </div>
-
-            <!-- 新增：增值税及附加税费预缴表 -->
-            <div class="tab-content" :class="{active: activeTab === 'prepay'}">
-                <div class="section-title">增值税预缴表</div>
-                <table>
-                    <thead>
-                        <tr><th>序号</th><th>抵减项目</th><th>期初余额</th><th>本期发生额</th><th>本期应抵减税额</th><th>本期实际抵减税额</th><th>期末余额</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in prepay.vatItems" :key="index">
-                            <td>{{ index + 1 }}</td>
-                            <td>{{ item.name }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="item.start" @input="calculatePrepay"></td>
-                            <td><input type="number" class="input-cell" v-model.number="item.current" @input="calculatePrepay"></td>
-                            <td class="readonly">{{ formatNumber(item.should) }}</td>
-                            <td><input type="number" class="input-cell" v-model.number="item.actual" @input="calculatePrepay"></td>
-                            <td class="readonly">{{ formatNumber(item.end) }}</td>
-                        </tr>
-                        <tr>
-                            <td>合计</td>
-                            <td></td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.vatTotalStart) }}</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.vatTotalCurrent) }}</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.vatTotalShould) }}</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.vatTotalActual) }}</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.vatTotalEnd) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="info-box">
-                    <p>填写说明：</p>
-                    <p>• 本期应抵减税额 = 期初余额 + 本期发生额</p>
-                    <p>• 本期实际抵减税额 ≤ 本期应抵减税额</p>
-                    <p>• 期末余额 = 本期应抵减税额 - 本期实际抵减税额</p>
-                </div>
-
-                <div class="section-title" style="margin-top: 30px;">增值税及附加税费预缴表附列资料（附加税费情况表）</div>
-                <p style="text-align: center; margin-bottom: 15px; color: #666;">税(费)款所属时间: {{ form.periodStart }} 至 {{ form.periodEnd }} &nbsp;&nbsp; 纳税人名称: {{ form.taxpayerName }} &nbsp;&nbsp; 金额单位: 元(列至角分)</p>
-                <table>
-                    <thead>
-                        <tr>
-                            <th rowspan="3">税(费)种</th>
-                            <th>计税(费)依据</th>
-                            <th rowspan="2">税(费)率<br>(%)</th>
-                            <th rowspan="2">本期应纳税<br>(费)额</th>
-                            <th colspan="2">本期减免税(费)额</th>
-                            <th colspan="2">增值税小规模纳税人“六税两费”减征政策</th>
-                            <th rowspan="3">本期实际预缴税<br>(费)额</th>
-                        </tr>
-                        <tr>
-                            <th rowspan="2">增值税预缴税额</th>
-                            <th rowspan="2">本期是否适用<br>□是 □否</th>
-                            <th rowspan="2">本期实际预缴税<br>(费)额</th>
-                        </tr>
-                        <tr>
-                            <th>减征比例(%)</th>
-                            <th>减征额</th>
-                            <th>减征比例(%)</th>
-                            <th>减征额</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td></td>
-                            <td>1</td>
-                            <td>2</td>
-                            <td>3=1×2</td>
-                            <td>4</td>
-                            <td>5</td>
-                            <td>6</td>
-                            <td>7=(3-5)×6</td>
-                            <td>8=3-5-7</td>
-                        </tr>
-                        <tr>
-                            <td>城市维护建设税</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.vatPrepaid) }}</td>
-                            <td><select class="select-cell" v-model="prepay.cityRate" @change="calculatePrepay"><option value="7">7</option><option value="5">5</option><option value="1">1</option></select></td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.cityGross) }}</td>
-                            <td>——</td>
-                            <td><input type="number" class="input-cell" v-model.number="prepay.cityReduction" @input="calculatePrepay"></td>
-                            <td><select class="select-cell" v-model="prepay.citySixTaxRate" @change="calculatePrepay"><option value="50">50</option><option value="0">0</option></select></td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.citySixTax) }}</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.cityActual) }}</td>
-                        </tr>
-                        <tr>
-                            <td>教育费附加</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.vatPrepaid) }}</td>
-                            <td>3</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.eduGross) }}</td>
-                            <td>——</td>
-                            <td><input type="number" class="input-cell" v-model.number="prepay.eduReduction" @input="calculatePrepay"></td>
-                            <td><select class="select-cell" v-model="prepay.edu value="50">50</option><option value="0">0</option></select></td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.eduSixTax) }}</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.eduActual) }}</td>
-                        </tr>
-                        <tr>
-                            <SixTaxRate" @change="calculatePrepay"><optiontd>地方教育附加</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.vatPrepaid) }}</td>
-                            <td>2</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.localEduGross) }}</td>
-                            <td>——</td>
-                            <td><input type="number" class="input-cell" v-model.number="prepay.localEduReduction" @input="calculatePrepay"></td>
-                            <td><select class="select-cell" v-model="prepay.localEduSixTaxRate" @change="calculatePrepay"><option value="50">50</option><option value="0">0</option></select></td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.localEduSixTax) }}</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.localEduActual) }}</td>
-                        </tr>
-                        <tr>
-                            <td>合计</td>
-                            <td>—</td>
-                            <td>—</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.totalGross) }}</td>
-                            <td>—</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.totalReduction) }}</td>
-                            <td>—</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.totalSixTax) }}</td>
-                            <td class="readonly">{{ formatNumber(prepayCalc.totalActual) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="footer">
-                <div class="footer-info">
-                    <span>增值税应补（退）税额合计：{{ formatNumber(calc.row22_goods + calc.row22_service) }} 元</span>
-                    <span>附加税费合计：{{ formatNumber(calc.surchargeTotal) }} 元</span>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-reset" @click="resetForm">🔄 重置</button>
-                    <button class="btn btn-export" @click="exportToExcel">📥 导出 Excel</button>
-                    <button class="btn btn-save" @click="saveForm">💾 保存申报</button>
-                </div>
-            </div>
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="搜索工具..." autocomplete="off">
+            <button class="search-btn" onclick="searchTools()">搜索</button>
         </div>
+
+        <div class="tools-grid" id="toolsGrid"></div>
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">🔍</div>
+            <h3>未找到相关工具</h3>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-box">
+                <p>⚠️ 计算结果仅供学习交流，具体以相关规定为准</p>
+                <p>📱 微信：13919499872 欢迎交流</p>
+            </div>
+            <p>© 2026 工具箱，助力您工作高效高能</p>
+        </footer>
     </div>
 
     <script>
-        const { createApp, reactive, computed, ref } = Vue;
-        createApp({
-            setup() {
-                const activeTab = ref('main');
-                const form = reactive({
-                    taxId: '', taxpayerName: '', periodStart: '', periodEnd: '', fillDate: new Date().toISOString().split('T')[0]
-                });
-                const main = reactive({
-                    row1_goods: 0, row1_service: 0, row1_goods_year: 0, row1_service_year: 0,
-                    row2_goods: 0, row2_service: 0, row2_goods_year: 0, row2_service_year: 0,
-                    row3_goods: 0, row3_service: 0, row3_goods_year: 0, row3_service_year: 0,
-                    row4_goods: 0, row4_service: 0, row4_goods_year: 0, row4_service_year: 0,
-                    row5_goods: 0, row5_service: 0, row5_goods_year: 0, row5_service_year: 0,
-                    row6_goods: 0, row6_service: 0, row6_goods_year: 0, row6_service_year: 0,
-                    row7_goods: 0, row7_service: 0, row7_goods_year: 0, row7_service_year: 0,
-                    row8_goods: 0, row8_service: 0, row8_goods_year: 0, row8_service_year: 0,
-                    row9_goods: 0, row9_service: 0, row9_goods_year: 0, row9_service_year: 0,
-                    row10_goods: 0, row10_service: 0, row10_goods_year: 0, row10_service_year: 0,
-                    row11_goods: 0, row11_service: 0, row11_goods_year: 0, row11_service_year: 0,
-                    row12_goods: 0, row12_service: 0, row12_goods_year: 0, row12_service_year: 0,
-                    row13_goods: 0, row13_service: 0, row13_goods_year: 0, row13_service_year: 0,
-                    row14_goods: 0, row14_service: 0, row14_goods_year: 0, row14_service_year: 0,
-                    row16_goods: 0, row16_service: 0, row16_goods_year: 0, row16_service_year: 0,
-                    row21_goods: 0, row21_service: 0, row21_goods_year: 0, row21_service_year: 0
-                });
-                const app1 = reactive({
-                    row1: 0, row2: 0, row3: 0, row5: 0, row7: 0, row8: 0,
-                    row9: 0, row10: 0, row11: 0, row13: 0, row15: 0, row16: 0
-                });
-                const app2 = reactive({
-                    cityRate: 7,
-                    cityReductionCode: '',
-                    cityReductionAmount: 0,
-                    cityDeductionRate: 50, cityPaid: 0,
-                    eduReductionCode: '',
-                    eduReductionAmount: 0,
-                    eduDeductionRate: 50, eduPaid: 0,
-                    localEduReductionCode: '',
-                    localEduReductionAmount: 0,
-                    localEduDeductionRate: 50, localEduPaid: 0
-                });
-                const reduction = reactive({
-                    type2: '', type2Start: 0, type2Current: 0, type2Actual: 0,
-                    type3: '', type3Start: 0, type3Current: 0, type3Actual: 0,
-                    type10: '', type10Sales: 0, type10Deduction: 0, type10Input: 0,
-                    type11: '', type11Sales: 0, type11Deduction: 0, type11Input: 0
-                });
-                const app4 = reactive({
-                    row1Start: 0, row1Current: 0, row1Actual: 0,
-                    row2Start: 0, row2Current: 0, row2Actual: 0,
-                    row3Start: 0, row3Current: 0, row3Actual: 0,
-                    row4Start: 0, row4Current: 0, row4Actual: 0,
-                    row5Start: 0, row5Current: 0, row5Actual: 0
-                });
-                // 新增：增值税及附加税费预缴表数据
-                const prepay = reactive({
-                    vatItems: [
-                        { name: '增值税税控系统专用设备费及技术维护费', start: 0, current: 0, actual: 0 },
-                        { name: '分支机构预征缴纳税款', start: 0, current: 0, actual: 0 },
-                        { name: '建筑服务预征缴纳税款', start: 0, current: 0, actual: 0 },
-                        { name: '销售不动产预征缴纳税款', start: 0, current: 0, actual: 0 },
-                        { name: '出租不动产预征缴纳税款', start: 0, current: 0, actual: 0 }
-                    ],
-                    cityRate: 7,
-                    cityReduction: 0,
-                    citySixTaxRate: 50,
-                    eduReduction: 0,
-                    eduSixTaxRate: 50,
-                    localEduReduction: 0,
-                    localEduSixTaxRate: 50
-                });
+        const tools = [
+            { title: '工资薪酬个税计算', desc: '计算工资薪酬的个人所得税', link: 'sqgz.html', icon: '💰', status: 'ok' },
+            { title: '年终奖个税计算', desc: '计算年终奖的个人所得税', link: 'nzj.html', icon: '🎁', status: 'ok' },
+            { title: '一般劳务报酬税前计算', desc: '一般劳务报酬税前计算个税', link: 'sqlwbc.html', icon: '📝', status: 'ok' },
+            { title: '工资税后算税前', desc: '已知税后工资反推税前', link: 'shgz.html', icon: '🔄', status: 'ok' },
+            { title: '定价测算', desc: '产品定价与利润测算工具', link: 'dj.html', icon: '🏷️', status: 'ok' },
+            { title: '一般劳务税后算税前', desc: '一般劳务已知税后反推税前', link: 'shlwbc.html', icon: '💵', status: 'ok' },
+            { title: '累计预扣法劳务报酬净得算税前', desc: '累计预扣法下，已知劳务报酬净得反推税前', link: 'shljlwbc.html', icon: '📊', status: 'ok' },
+            { title: '累计预扣法劳务报酬税前算净得', desc: '累计预扣法下，已知劳务报酬税前计算净得', link: 'sqljlwbc.html', icon: '🧮', status: 'ok' },
+            { title: '居民个人综合所得汇算清缴计算器', desc: '计算年度综合所得应退或应补税额', link: 'zhsdhsqj.html', icon: '📋', status: 'ok' },
+            { title: '更多工具', desc: '更多实用工具即将上线', link: '', icon: '✨', status: 'dev' }
+        ];
 
-                const formatNumber = (num) => (num || 0).toFixed(2);
+        function renderTools(list, term = '') {
+            const grid = document.getElementById('toolsGrid');
+            const empty = document.getElementById('emptyState');
+            grid.innerHTML = '';
 
-                const updateYear = (field) => {
-                    main[field + '_year'] = (main[field + '_year'] || 0) + (main[field] || 0);
-                };
-
-                const calc = computed(() => {
-                    const row15_goods = (main.row1_goods + main.row4_goods + main.row7_goods) * 0.03;
-                    const row15_service = (main.row1_service + main.row4_service + main.row7_service) * 0.03;
-                    const row15_goods_year = (main.row1_goods_year + main.row4_goods_year + main.row7_goods_year) * 0.03;
-                    const row15_service_year = (main.row1_service_year + main.row4_service_year + main.row7_service_year) * 0.03;
-                    const row17_goods = (main.row9_goods + main.row13_goods) * 0.03;
-                    const row17_service = (main.row9_service + main.row13_service) * 0.03;
-                    const row17_goods_year = (main.row9_goods_year + main.row13_goods_year) * 0.03;
-                    const row17_service_year = (main.row9_service_year + main.row13_service_year) * 0.03;
-                    const row18_goods = main.row10_goods * 0.03;
-                    const row18_service = main.row10_service * 0.03;
-                    const row18_goods_year = main.row10_goods_year * 0.03;
-                    const row18_service_year = main.row10_service_year * 0.03;
-                    const row19_goods = main.row11_goods * 0.03;
-                    const row19_service = main.row11_service * 0.03;
-                    const row19_goods_year = main.row11_goods_year * 0.03;
-                    const row19_service_year = main.row11_service_year * 0.03;
-                    const row20_goods = row15_goods - (main.row16_goods || 0);
-                    const row20_service = row15_service - (main.row16_service || 0);
-                    const row20_goods_year = row15_goods_year - (main.row16_goods_year || 0);
-                    const row20_service_year = row15_service_year - (main.row16_service_year || 0);
-                    const row22_goods = row20_goods - (main.row21_goods || 0);
-                    const row22_service = row20_service - (main.row21_service || 0);
-                    const row22_goods_year = row20_goods_year - (main.row21_goods_year || 0);
-                    const row22_service_year = row20_service_year - (main.row21_service_year || 0);
-                    const totalVatPayable = row22_goods + row22_service;
-                    const surchargeCityGross = totalVatPayable * (app2.cityRate / 100);
-                    const surchargeEduGross = totalVatPayable * 0.03;
-                    const surchargeLocalEduGross = totalVatPayable * 0.02;
-                    const surchargeCityReduction = app2.cityReductionAmount || 0;
-                    const surchargeEduReduction = app2.eduReductionAmount || 0;
-                    const surchargeLocalEduReduction = app2.localEduReductionAmount || 0;
-                    const surchargeCityDeduction = surchargeCityGross * (app2.cityDeductionRate / 100);
-                    const surchargeEduDeduction = surchargeEduGross * (app2.eduDeductionRate / 100);
-                    const surchargeLocalEduDeduction = surchargeLocalEduGross * (app2.localEduDeductionRate / 100);
-                    const row23 = surchargeCityGross - surchargeCityReduction - surchargeCityDeduction - app2.cityPaid;
-                    const row24 = surchargeEduGross - surchargeEduReduction - surchargeEduDeduction - app2.eduPaid;
-                    const row25 = surchargeLocalEduGross - surchargeLocalEduReduction - surchargeLocalEduDeduction - app2.localEduPaid;
-                    const surchargeTotalGross = surchargeCityGross + surchargeEduGross + surchargeLocalEduGross;
-                    const surchargeTotalReduction = surchargeCityReduction + surchargeEduReduction + surchargeLocalEduReduction;
-                    const surchargeTotalDeduction = surchargeCityDeduction + surchargeEduDeduction + surchargeLocalEduDeduction;
-                    const surchargeTotal = row23 + row24 + row25;
-                    return {
-                        row15_goods, row15_service, row15_goods_year, row15_service_year,
-                        row17_goods, row17_service, row17_goods_year, row17_service_year,
-                        row18_goods, row18_service, row18_goods_year, row18_service_year,
-                        row19_goods, row19_service, row19_goods_year, row19_service_year,
-                        row20_goods, row20_service, row20_goods_year, row20_service_year,
-                        row22_goods, row22_service, row22_goods_year, row22_service_year,
-                        totalVatPayable,
-                        surchargeCityGross, surchargeEduGross, surchargeLocalEduGross,
-                        surchargeCityReduction, surchargeEduReduction, surchargeLocalEduReduction,
-                        surchargeCityDeduction, surchargeEduDeduction, surchargeLocalEduDeduction,
-                        row23, row24, row25, row23_year: row23, row24_year: row24, row25_year: row25,
-                        surchargeTotalGross, surchargeTotalReduction, surchargeTotalDeduction, surchargeTotal
-                    };
-                });
-
-                // 修改点：app1Calc 计算逻辑修改
-                // 含税销售额（第7栏）= 全部含税收入（第5栏）- 本期扣除额（第6栏）
-                // 不含税销售额（第8栏）= 手动输入值，不再自动计算
-                // 含税销售额（第15栏）= 全部含税收入（第13栏）- 本期扣除额（第14栏）
-                // 不含税销售额（第16栏）= 手动输入值，不再自动计算
-                const app1Calc = computed(() => {
-                    const row4 = (app1.row1 || 0) + (app1.row2 || 0) - (app1.row3 || 0);
-                    const row6 = app1.row3 || 0;
-                    // 修改点：含税销售额（第7栏）自动计算：全部含税收入（第5栏）- 本期扣除额（第6栏）
-                    const row7 = (app1.row5 || 0) - row6;
-                    // 修改点：不含税销售额（第8栏）直接取手动输入值
-                    const row8 = app1.row8 || 0;
-                    const row12 = (app1.row9 || 0) + (app1.row10 || 0) - (app1.row11 || 0);
-                    const row14 = app1.row11 || 0;
-                    // 修改点：含税销售额（第15栏）自动计算：全部含税收入（第13栏）- 本期扣除额（第14栏）
-                    const row15 = (app1.row13 || 0) - row14;
-                    // 修改点：不含税销售额（第16栏）直接取手动输入值
-                    const row16 = app1.row16 || 0;
-                    return { row4, row6, row7, row8, row12, row14, row15, row16 };
-                });
-
-                const calculateApp1 = () => {};
-
-                const calculateApp2 = () => {};
-
-                const reductionCalc = computed(() => {
-                    const type2Should = (reduction.type2Start || 0) + (reduction.type2Current || 0);
-                    const type2End = type2Should - (reduction.type2Actual || 0);
-                    const type3Should = (reduction.type3Start || 0) + (reduction.type3Current || 0);
-                    const type3End = type3Should - (reduction.type3Actual || 0);
-                    const totalStart = (reduction.type2Start || 0) + (reduction.type3Start || 0);
-                    const totalCurrent = (reduction.type2Current || 0) + (reduction.type3Current || 0);
-                    const totalShould = type2Should + type3Should;
-                    const totalActual = (reduction.type2Actual || 0) + (reduction.type3Actual || 0);
-                    const totalEnd = type2End + type3End;
-                    const type10Net = (reduction.type10Sales || 0) - (reduction.type10Deduction || 0);
-                    const type10TaxAmount = type10Net * 0.03;
-                    const type11Net = (reduction.type11Sales || 0) - (reduction.type11Deduction || 0);
-                    const type11TaxAmount = type11Net * 0.03;
-                    const exemptSalesTotal = (reduction.type10Sales || 0) + (reduction.type11Sales || 0);
-                    const exemptDeductionTotal = (reduction.type10Deduction || 0) + (reduction.type11Deduction || 0);
-                    const exemptSalesNetTotal = type10Net + type11Net;
-                    const exemptInputTaxTotal = (reduction.type10Input || 0) + (reduction.type11Input || 0);
-                    const exemptTaxAmountTotal = type10TaxAmount + type11TaxAmount;
-                    return {
-                        type2Should, type2End, type3Should, type3End,
-                        totalStart, totalCurrent, totalShould, totalActual, totalEnd,
-                        type10Net, type10TaxAmount, type11Net, type11TaxAmount,
-                        exemptSalesTotal, exemptDeductionTotal, exemptSalesNetTotal, exemptInputTaxTotal, exemptTaxAmountTotal
-                    };
-                });
-
-                const calculateReduction = () => {};
-
-                const app4Calc = computed(() => {
-                    const row1Should = (app4.row1Start || 0) + (app4.row1Current || 0);
-                    const row1End = row1Should - (app4.row1Actual || 0);
-                    const row2Should = (app4.row2Start || 0) + (app4.row2Current || 0);
-                    const row2End = row2Should - (app4.row2Actual || 0);
-                    const row3Should = (app4.row3Start || 0) + (app4.row3Current || 0);
-                    const row3End = row3Should - (app4.row3Actual || 0);
-                    const row4Should = (app4.row4Start || 0) + (app4.row4Current || 0);
-                    const row4End = row4Should - (app4.row4Actual || 0);
-                    const row5Should = (app4.row5Start || 0) + (app4.row5Current || 0);
-                    const row5End = row5Should - (app4.row5Actual || 0);
-                    const totalStart = (app4.row1Start || 0) + (app4.row2Start || 0) + (app4.row3Start || 0) + (app4.row4Start || 0) + (app4.row5Start || 0);
-                    const totalCurrent = (app4.row1Current || 0) + (app4.row2Current || 0) + (app4.row3Current || 0) + (app4.row4Current || 0) + (app4.row5Current || 0);
-                    const totalShould = row1Should + row2Should + row3Should + row4Should + row5Should;
-                    const totalActual = (app4.row1Actual || 0) + (app4.row2Actual || 0) + (app4.row3Actual || 0) + (app4.row4Actual || 0) + (app4.row5Actual || 0);
-                    const totalEnd = row1End + row2End + row3End + row4End + row5End;
-                    return {
-                        row1Should, row1End, row2Should, row2End, row3Should, row3End,
-                        row4Should, row4End, row5Should, row5End,
-                        totalStart, totalCurrent, totalShould, totalActual, totalEnd
-                    };
-                });
-
-                const calculateApp4 = () => {};
-
-                // 新增：增值税及附加税费预缴表计算逻辑
-                const prepayCalc = computed(() => {
-                    // 增值税预缴表计算
-                    const vatItemsWithCalc = prepay.vatItems.map(item => {
-                        const should = (item.start || 0) + (item.current || 0);
-                        const end = should - (item.actual || 0);
-                        return { ...item, should, end };
-                    });
-                    // 更新预缴表项目（带有计算值）
-                    prepay.vatItems.forEach((item, index) => {
-                        item.should = vatItemsWithCalc[index].should;
-                        item.end = vatItemsWithCalc[index].end;
-                    });
-                    const vatTotalStart = prepay.vatItems.reduce((sum, item) => sum + (item.start || 0), 0);
-                    const vatTotalCurrent = prepay.vatItems.reduce((sum, item) => sum + (item.current || 0), 0);
-                    const vatTotalShould = prepay.vatItems.reduce((sum, item) => sum + (item.should || 0), 0);
-                    const vatTotalActual = prepay.vatItems.reduce((sum, item) => sum + (item.actual || 0), 0);
-                    const vatTotalEnd = prepay.vatItems.reduce((sum, item) => sum + (item.end || 0), 0);
-                    // 假设增值税预缴税额为合计的“本期实际抵减税额”（根据业务逻辑可能不同，此处按示例结构）
-                    const vatPrepaid = vatTotalActual;
-
-                    // 附加税费情况表计算
-                    const cityGross = vatPrepaid * (prepay.cityRate / 100);
-                    const eduGross = vatPrepaid * 0.03;
-                    const localEduGross = vatPrepaid * 0.02;
-                    const citySixTax = (cityGross - (prepay.cityReduction || 0)) * (prepay.citySixTaxRate / 100);
-                    const eduSixTax = (eduGross - (prepay.eduReduction || 0)) * (prepay.eduSixTaxRate / 100);
-                    const localEduSixTax = (localEduGross - (prepay.localEduReduction || 0)) * (prepay.localEduSixTaxRate / 100);
-                    const cityActual = cityGross - (prepay.cityReduction || 0) - citySixTax;
-                    const eduActual = eduGross - (prepay.eduReduction || 0) - eduSixTax;
-                    const localEduActual = localEduGross - (prepay.localEduReduction || 0) - localEduSixTax;
-                    const totalGross = cityGross + eduGross + localEduGross;
-                    const totalReduction = (prepay.cityReduction || 0) + (prepay.eduReduction || 0) + (prepay.localEduReduction || 0);
-                    const totalSixTax = citySixTax + eduSixTax + localEduSixTax;
-                    const totalActual = cityActual + eduActual + localEduActual;
-
-                    return {
-                        vatTotalStart, vatTotalCurrent, vatTotalShould, vatTotalActual, vatTotalEnd, vatPrepaid,
-                        cityGross, eduGross, localEduGross,
-                        citySixTax, eduSixTax, localEduSixTax,
-                        cityActual, eduActual, localEduActual,
-                        totalGross, totalReduction, totalSixTax, totalActual
-                    };
-                });
-
-                const calculatePrepay = () => {};
-
-                const resetForm = () => {
-                    if (confirm('确定要重置所有数据吗？此操作不可恢复！')) {
-                        form.taxId = '';
-                        form.taxpayerName = '';
-                        form.periodStart = '';
-                        form.periodEnd = '';
-                        form.fillDate = new Date().toISOString().split('T')[0];
-                        Object.keys(main).forEach(key => { main[key] = 0; });
-                        Object.keys(app1).forEach(key => { app1[key] = 0; });
-                        app2.cityRate = 7;
-                        app2.cityReductionCode = '';
-                        app2.cityReductionAmount = 0;
-                        app2.cityDeductionRate = 50;
-                        app2.cityPaid = 0;
-                        app2.eduReductionCode = '';
-                        app2.eduReductionAmount = 0;
-                        app2.eduDeductionRate = 50;
-                        app2.eduPaid = 0;
-                        app2.localEduReductionCode = '';
-                        app2.localEduReductionAmount = 0;
-                        app2.localEduDeductionRate = 50;
-                        app2.localEduPaid = 0;
-                        reduction.type2 = '';
-                        reduction.type2Start = 0;
-                        reduction.type2Current = 0;
-                        reduction.type2Actual = 0;
-                        reduction.type3 = '';
-                        reduction.type3Start = 0;
-                        reduction.type3Current = 0;
-                        reduction.type3Actual = 0;
-                        reduction.type10 = '';
-                        reduction.type10Sales = 0;
-                        reduction.type10Deduction = 0;
-                        reduction.type10Input = 0;
-                        reduction.type11 = '';
-                        reduction.type11Sales = 0;
-                        reduction.type11Deduction = 0;
-                        reduction.type11Input = 0;
-                        Object.keys(app4).forEach(key => { app4[key] = 0; });
-                        // 重置预缴表数据
-                        prepay.vatItems.forEach(item => {
-                            item.start = 0;
-                            item.current = 0;
-                            item.actual = 0;
-                        });
-                        prepay.cityRate = 7;
-                        prepay.cityReduction = 0;
-                        prepay.citySixTaxRate = 50;
-                        prepay.eduReduction = 0;
-                        prepay.eduSixTaxRate = 50;
-                        prepay.localEduReduction = 0;
-                        prepay.localEduSixTaxRate = 50;
-                        alert('所有数据已重置为 0！');
-                    }
-                };
-
-                const exportToExcel = () => {
-                    const wb = XLSX.utils.book_new();
-                    const mainData = [
-                        ['增值税及附加税费申报表（小规模纳税人适用）'],
-                        ['纳税人识别号 (统一社会信用代码):', form.taxId, '纳税人名称:', form.taxpayerName],
-                        ['金额单位：元（列至角分）', '', '税款所属期:', form.periodStart + ' 至 ' + form.periodEnd, '填表日期:', form.fillDate],
-                        [],
-                        ['一、计税依据'],
-                        ['项目', '栏次', '本期数 - 货物及劳务', '本期数 - 服务不动产和无形资产', '本年累计 - 货物及劳务', '本年累计 - 服务不动产和无形资产'],
-                        ['（一）应征增值税不含税销售额（3% 征收率）', '1', main.row1_goods, main.row1_service, main.row1_goods_year, main.row1_service_year],
-                        ['增值税专用发票不含税销售额', '2', main.row2_goods, main.row2_service, main.row2_goods_year, main.row2_service_year],
-                        ['其他增值税发票不含税销售额', '3', main.row3_goods, main.row3_service, main.row3_goods_year, main.row3_service_year],
-                        ['（二）应征增值税不含税销售额（5% 征收率）', '4', main.row4_goods, main.row4_service, main.row4_goods_year, main.row4_service_year],
-                        ['增值税专用发票不含税销售额', '5', main.row5_goods, main.row5_service, main.row5_goods_year, main.row5_service_year],
-                        ['其他增值税发票不含税销售额', '6', main.row6_goods, main.row6_service, main.row6_goods_year, main.row6_service_year],
-                        ['（三）销售使用过的固定资产不含税销售额', '7(7≥8)', main.row7_goods, main.row7_service, main.row7_goods_year, main.row7_service_year],
-                        ['其中：其他增值税发票不含税销售额', '8', main.row8_goods, main.row8_service, main.row8_goods_year, main.row8_service_year],
-                        ['（四）免税销售额', '9=10+11+12', main.row9_goods, main.row9_service, main.row9_goods_year, main.row9_service_year],
-                        ['其中：小微企业免税销售额', '10', main.row10_goods, main.row10_service, main.row10_goods_year, main.row10_service_year],
-                        ['未达起征点销售额', '11', main.row11_goods, main.row11_service, main.row11_goods_year, main.row11_service_year],
-                        ['其他免税销售额', '12', main.row12_goods, main.row12_service, main.row12_goods_year, main.row12_service_year],
-                        ['（五）出口免税销售额', '13(13≥14)', main.row13_goods, main.row13_service, main.row13_goods_year, main.row13_service_year],
-                        ['其中：其他增值税发票不含税销售额', '14', main.row14_goods, main.row14_service, main.row14_goods_year, main.row14_service_year],
-                        [],
-                        ['二、税款计算'],
-                        ['项目', '栏次', '本期数 - 货物及劳务', '本期数 - 服务不动产和无形资产', '本年累计 - 货物及劳务', '本年累计 - 服务不动产和无形资产'],
-                        ['本期应纳税额', '15', calc.value.row15_goods, calc.value.row15_service, calc.value.row15_goods_year, calc.value.row15_service_year],
-                        ['本期应纳税额减征额', '16', main.row16_goods, main.row16_service, main.row16_goods_year, main.row16_service_year],
-                        ['本期免税额', '17', calc.value.row17_goods, calc.value.row17_service, calc.value.row17_goods_year, calc.value.row17_service_year],
-                        ['其中：小微企业免税额', '18', calc.value.row18_goods, calc.value.row18_service, calc.value.row18_goods_year, calc.value.row18_service_year],
-                        ['未达起征点免税额', '19', calc.value.row19_goods, calc.value.row19_service, calc.value.row19_goods_year, calc.value.row19_service_year],
-                        ['应纳税额合计', '20=15-16', calc.value.row20_goods, calc.value.row20_service, calc.value.row20_goods_year, calc.value.row20_service_year],
-                        ['本期预缴税额', '21', main.row21_goods, main.row21_service, main.row21_goods_year, main.row21_service_year],
-                        ['本期应补（退）税额', '22=20-21', calc.value.row22_goods, calc.value.row22_service, calc.value.row22_goods_year, calc.value.row22_service_year],
-                        [],
-                        ['三、附加税费'],
-                        ['项目', '栏次', '本期数', '本年累计'],
-                        ['城市维护建设税本期应补（退）税额', '23', calc.value.row23, calc.value.row23_year],
-                        ['教育费附加本期应补（退）费额', '24', calc.value.row24, calc.value.row24_year],
-                        ['地方教育附加本期应补（退）费额', '25', calc.value.row25, calc.value.row25_year],
-                        [],
-                        ['增值税应补（退）税额合计：', (calc.value.row22_goods + calc.value.row22_service).toFixed(2) + ' 元'],
-                        ['附加税费合计：', calc.value.surchargeTotal.toFixed(2) + ' 元']
-                    ];
-                    const mainWs = XLSX.utils.aoa_to_sheet(mainData);
-                    XLSX.utils.book_append_sheet(wb, mainWs, '主表');
-
-                    // 修改点：导出 Excel 时，附列资料（一）不含税销售额为手动输入值
-                    const app1Data = [
-                        ['增值税及附加税费申报表附列资料（一）'],
-                        ['（服务、不动产和无形资产扣除项目明细）'],
-                        ['税款所属期:', form.periodStart + ' 至 ' + form.periodEnd, '纳税人名称:', form.taxpayerName],
-                        [],
-                        ['应税行为（3% 征收率）扣除额计算'],
-                        ['期初余额', '本期发生额', '本期扣除额', '期末余额'],
-                        ['1', '2', '3（3≤1＋2 之和，且 3≤5）', '4＝1＋2－3'],
-                        [app1.row1, app1.row2, app1.row3, app1Calc.value.row4],
-                        [],
-                        ['应税行为（3% 征收率）计税销售额计算'],
-                        ['全部含税收入（适用 3% 征收率）', '本期扣除额', '含税销售额', '不含税销售额'],
-                        ['5', '6=3', '7＝5－6', '8'],
-                        [app1.row5, app1Calc.value.row6, app1Calc.value.row7, app1.row8],
-                        [],
-                        ['应税行为（5% 征收率）扣除额计算'],
-                        ['期初余额', '本期发生额', '本期扣除额', '期末余额'],
-                        ['9', '10', '11（11≤9＋10 之和，且 11≤13）', '12＝9＋10－11'],
-                        [app1.row9, app1.row10, app1.row11, app1Calc.value.row12],
-                        [],
-                        ['应税行为（5% 征收率）计税销售额计算'],
-                        ['全部含税收入（适用 5% 征收率）', '本期扣除额', '含税销售额', '不含税销售额'],
-                        ['13', '14=11', '15＝13－14', '16'],
-                        [app1.row13, app1Calc.value.row14, app1Calc.value.row15, app1.row16]
-                    ];
-                    const app1Ws = XLSX.utils.aoa_to_sheet(app1Data);
-                    XLSX.utils.book_append_sheet(wb, app1Ws, '附列资料一');
-
-                    const app2Data = [
-                        ['增值税及附加税费申报表附列资料（二）'],
-                        ['（附加税费情况表）'],
-                        ['税（费）款所属时间:', form.periodStart + ' 至 ' + form.periodEnd, '纳税人名称:', form.taxpayerName],
-                        [],
-                        ['税（费）种', '计税（费）依据', '税（费）率（%）', '本期应纳税（费）额', '减免性质代码', '减免税（费）额', '减征比例（%）', '减征额', '本期已缴税（费）额', '本期应补（退）税（费）额'],
-                        ['城市维护建设税', calc.value.totalVatPayable, app2.cityRate + '%', calc.value.surchargeCityGross, app2.cityReductionCode, app2.cityReductionAmount, app2.cityDeductionRate + '%', calc.value.surchargeCityDeduction, app2.cityPaid, calc.value.row23],
-                        ['教育费附加', calc.value.totalVatPayable, '3%', calc.value.surchargeEduGross, app2.eduReductionCode, app2.eduReductionAmount, app2.eduDeductionRate + '%', calc.value.surchargeEduDeduction, app2.eduPaid, calc.value.row24],
-                        ['地方教育附加', calc.value.totalVatPayable, '2%', calc.value.surchargeLocalEduGross, app2.localEduReductionCode, app2.localEduReductionAmount, app2.localEduDeductionRate + '%', calc.value.surchargeLocalEduDeduction, app2.localEduPaid, calc.value.row25],
-                        ['合计', '——', '——', calc.value.surchargeTotalGross, '——', (app2.cityReductionAmount || 0) + (app2.eduReductionAmount || 0) + (app2.localEduReductionAmount || 0), '——', calc.value.surchargeTotalDeduction, app2.cityPaid + app2.eduPaid + app2.localEduPaid, calc.value.surchargeTotal]
-                    ];
-                    const app2Ws = XLSX.utils.aoa_to_sheet(app2Data);
-                    XLSX.utils.book_append_sheet(wb, app2Ws, '附列资料二');
-
-                    const reductionData = [
-                        ['增值税减免税申报明细表'],
-                        ['税款所属时间:', form.periodStart + ' 至 ' + form.periodEnd, '纳税人名称:', form.taxpayerName],
-                        [],
-                        ['一、减税项目'],
-                        ['减税性质代码及名称', '栏次', '期初余额', '本期发生额', '本期应抵减税额', '本期实际抵减税额', '期末余额'],
-                        ['合计', '1', reductionCalc.value.totalStart, reductionCalc.value.totalCurrent, reductionCalc.value.totalShould, reductionCalc.value.totalActual, reductionCalc.value.totalEnd],
-                        [reduction.type2, '2', reduction.type2Start, reduction.type2Current, reductionCalc.value.type2Should, reduction.type2Actual, reductionCalc.value.type2End],
-                        [reduction.type3, '3', reduction.type3Start, reduction.type3Current, reductionCalc.value.type3Should, reduction.type3Actual, reductionCalc.value.type3End],
-                        [],
-                        ['二、免税项目'],
-                        ['免税性质代码及名称', '栏次', '免征增值税项目销售额', '免税销售额扣除项目本期实际扣除金额', '扣除后免税销售额', '免税销售额对应的进项税额', '免税额'],
-                        ['合计', '7', reductionCalc.value.exemptSalesTotal, reductionCalc.value.exemptDeductionTotal, reductionCalc.value.exemptSalesNetTotal, reductionCalc.value.exemptInputTaxTotal, reductionCalc.value.exemptTaxAmountTotal],
-                        ['出口免税', '8', '——', '——', '——', '——', '——'],
-                        ['其中：跨境服务', '9', '——', '——', '——', '——', '——'],
-                        [reduction.type10, '10', reduction.type10Sales, reduction.type10Deduction, reductionCalc.value.type10Net, reduction.type10Input, reductionCalc.value.type10TaxAmount],
-                        [reduction.type11, '11', reduction.type11Sales, reduction.type11Deduction, reductionCalc.value.type11Net, reduction.type11Input, reductionCalc.value.type11TaxAmount]
-                    ];
-                    const reductionWs = XLSX.utils.aoa_to_sheet(reductionData);
-                    XLSX.utils.book_append_sheet(wb, reductionWs, '减免税明细表');
-
-                    const app4Data = [
-                        ['增值税纳税申报表附列资料（四）'],
-                        ['（税额抵减情况表）'],
-                        ['税款所属时间:', form.periodStart + ' 至 ' + form.periodEnd, '纳税人名称:', form.taxpayerName],
-                        [],
-                        ['序号', '抵减项目', '期初余额', '本期发生额', '本期应抵减税额', '本期实际抵减税额', '期末余额'],
-                        ['1', '增值税税控系统专用设备费及技术维护费', app4.row1Start, app4.row1Current, app4Calc.value.row1Should, app4.row1Actual, app4Calc.value.row1End],
-                        ['2', '分支机构预征缴纳税款', app4.row2Start, app4.row2Current, app4Calc.value.row2Should, app4.row2Actual, app4Calc.value.row2End],
-                        ['3', '建筑服务预征缴纳税款', app4.row3Start, app4.row3Current, app4Calc.value.row3Should, app4.row3Actual, app4Calc.value.row3End],
-                        ['4', '销售不动产预征缴纳税款', app4.row4Start, app4.row4Current, app4Calc.value.row4Should, app4.row4Actual, app4Calc.value.row4End],
-                        ['5', '出租不动产预征缴纳税款', app4.row5Start, app4.row5Current, app4Calc.value.row5Should, app4.row5Actual, app4Calc.value.row5End],
-                        ['合计', '', app4Calc.value.totalStart, app4Calc.value.totalCurrent, app4Calc.value.totalShould, app4Calc.value.totalActual, app4Calc.value.totalEnd]
-                    ];
-                    const app4Ws = XLSX.utils.aoa_to_sheet(app4Data);
-                    XLSX.utils.book_append_sheet(wb, app4Ws, '附列资料四');
-
-                    // 新增：导出预缴表数据
-                    const prepayVatData = [
-                        ['增值税预缴表'],
-                        ['税款所属时间:', form.periodStart + ' 至 ' + form.periodEnd, '纳税人名称:', form.taxpayerName],
-                        [],
-                        ['序号', '抵减项目', '期初余额', '本期发生额', '本期应抵减税额', '本期实际抵减税额', '期末余额']
-                    ];
-                    prepay.vatItems.forEach((item, index) => {
-                        prepayVatData.push([index + 1, item.name, item.start, item.current, item.should, item.actual, item.end]);
-                    });
-                    prepayVatData.push(['合计', '', prepayCalc.value.vatTotalStart, prepayCalc.value.vatTotalCurrent, prepayCalc.value.vatTotalShould, prepayCalc.value.vatTotalActual, prepayCalc.value.vatTotalEnd]);
-                    const prepayVatWs = XLSX.utils.aoa_to_sheet(prepayVatData);
-                    XLSX.utils.book_append_sheet(wb, prepayVatWs, '增值税预缴表');
-
-                    const prepaySurchargeData = [
-                        ['增值税及附加税费预缴表附列资料（附加税费情况表）'],
-                        ['税(费)款所属时间:', form.periodStart + ' 至 ' + form.periodEnd, '纳税人名称:', form.taxpayerName, '金额单位:元(列至角分)'],
-                        [],
-                        ['税(费)种', '计税(费)依据', '税(费)率(%)', '本期应纳税(费)额', '本期减免税(费)额', '增值税小规模纳税人“六税两费”减征政策', '本期实际预缴税(费)额'],
-                        ['', '增值税预缴税额', '', '', '减征比例(%)', '减征额', '减征比例(%)', '减征额', ''],
-                        ['城市维护建设税', prepayCalc.value.vatPrepaid, prepay.cityRate, prepayCalc.value.cityGross, '——', prepay.cityReduction, prepay.citySixTaxRate, prepayCalc.value.citySixTax, prepayCalc.value.cityActual],
-                        ['教育费附加', prepayCalc.value.vatPrepaid, 3, prepayCalc.value.eduGross, '——', prepay.eduReduction, prepay.eduSixTaxRate, prepayCalc.value.eduSixTax, prepayCalc.value.eduActual],
-                        ['地方教育附加', prepayCalc.value.vatPrepaid, 2, prepayCalc.value.localEduGross, '——', prepay.localEduReduction, prepay.localEduSixTaxRate, prepayCalc.value.localEduSixTax, prepayCalc.value.localEduActual],
-                        ['合计', '—', '—', prepayCalc.value.totalGross, '—', prepayCalc.value.totalReduction, '—', prepayCalc.value.totalSixTax, prepayCalc.value.totalActual]
-                    ];
-                    const prepaySurchargeWs = XLSX.utils.aoa_to_sheet(prepaySurchargeData);
-                    XLSX.utils.book_append_sheet(wb, prepaySurchargeWs, '附加税费预缴表');
-
-                    const fileName = '增值税申报表_' + (form.periodStart || new Date().toISOString().split('T')[0]) + '.xlsx';
-                    XLSX.writeFile(wb, fileName);
-                    alert('Excel 文件已导出！');
-                };
-
-                const saveForm = () => {
-                    localStorage.setItem('vatTaxForm', JSON.stringify({ form, main, app1, app2, reduction, app4, prepay }));
-                    alert('申报数据已保存！');
-                };
-
-                return {
-                    activeTab, form, main, app1, app2, reduction, app4, prepay,
-                    calc, app1Calc, reductionCalc, app4Calc, prepayCalc,
-                    formatNumber, updateYear,
-                    calculateApp1, calculateApp2, calculateReduction, calculateApp4, calculatePrepay,
-                    resetForm, exportToExcel, saveForm
-                };
+            if (list.length === 0) {
+                empty.classList.add('active');
+                return;
             }
-        }).mount('#app');
+            empty.classList.remove('active');
+
+            list.forEach(tool => {
+                const card = document.createElement('div');
+                card.className = `tool-card ${tool.status === 'dev' ? 'disabled' : ''}`;
+                
+                const linkHtml = tool.status === 'ok' 
+                    ? `<a href="${tool.link}" class="tool-link">立即使用 <span class="arrow">→</span></a>`
+                    : `<span class="tool-link">敬请期待</span>`;
+
+                card.innerHTML = `
+                    <div class="tool-icon">${tool.icon}</div>
+                    <h3 class="tool-title">${highlight(tool.title, term)}</h3>
+                    <p class="tool-desc">${highlight(tool.desc, term)}</p>
+                    ${linkHtml}
+                `;
+
+                if (tool.status === 'ok') {
+                    card.onclick = (e) => { if (!e.target.closest('a')) location.href = tool.link; };
+                }
+                grid.appendChild(card);
+            });
+        }
+
+        function highlight(text, term) {
+            if (!term) return text;
+            return text.replace(new RegExp(`(${term})`, 'gi'), '<mark style="background:#fbbf24;color:#000;padding:0 4px;border-radius:4px">$1</mark>');
+        }
+
+        function searchTools() {
+            const term = document.getElementById('searchInput').value.trim().toLowerCase();
+            const filtered = term 
+                ? tools.filter(t => t.title.toLowerCase().includes(term) || t.desc.toLowerCase().includes(term))
+                : tools;
+            renderTools(filtered, term);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', searchTools);
+        document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchTools(); });
+
+        renderTools(tools);
     </script>
 </body>
 </html>
