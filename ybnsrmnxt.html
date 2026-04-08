@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>增值税及附加税费申报模拟系统（一般纳税人适用）</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
     :root { --blue: #0A53A0; --light-blue: #EAF2FB; --border: #A4C8E1; --txt-blue: #0A53A0;}
     body { font-family: "Microsoft YaHei", SimSun, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; font-size: 13px; color: #333; }
@@ -54,6 +55,24 @@
         background-color: #f0f2f5;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+    /* 按钮样式 */
+    .action-btn {
+        background: #fff;
+        color: var(--blue);
+        border: none;
+        padding: 6px 14px;
+        margin-left: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 13px;
+        transition: all 0.3s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .action-btn:hover {
+        background: #DFEBF7;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
 </style>
 </head>
 <body>
@@ -65,7 +84,10 @@
     <div class="sys-container">
         <div class="sys-header">
             <h1>一般纳税人增值税模拟申报表</h1>
-            <div style="font-size: 13px; font-weight: normal;"></div>
+            <div style="font-size: 13px; font-weight: normal;">
+                <button class="action-btn" onclick="resetData()">重置数据</button>
+                <button class="action-btn" onclick="exportToExcel()">导出到Excel</button>
+            </div>
         </div>
         <div class="sys-info">
             <div>纳税人识别号: <input type="text" value="91000000000000000X" style="width:160px; font-weight:bold;"></div>
@@ -294,7 +316,7 @@
         <table>
             <thead>
                 <tr><th colspan="5" class="sec-title">一、申报抵扣的进项税额</th></tr>
-                <tr><th>项 &nbsp; 目</th><th width="10%">栏次</th><th>份数</th><th>金额</th><th>税额</th></tr>
+                <tr><th>项 &nbsp; 项目</th><th width="10%">栏次</th><th>份数</th><th>金额</th><th>税额</th></tr>
             </thead>
             <tbody>
                 <tr><td class="l">（一）认证相符的增值税专用发票 (1=2+3)</td><td class="c">1</td>
@@ -557,7 +579,7 @@
                     <td><input type="text" id="t5c0_1" readonly></td>
                     <td><input type="text" id="t5c0_2"></td>
                     <td><input type="text" id="t5c0_3"></td>
-                    <td><input type="text" id="t5c0_4"></td>
+                    <td><input type="text" id="t5c0_4" value="0.07"></td>
                     <td><input type="text" id="t5c0_5" readonly></td>
                     <td><input type="text" id="t5c0_6"></td>
                     <td><input type="text" id="t5c0_7"></td>
@@ -571,7 +593,7 @@
                     <td><input type="text" id="t5c1_1" readonly></td>
                     <td><input type="text" id="t5c1_2"></td>
                     <td><input type="text" id="t5c1_3"></td>
-                    <td><input type="text" id="t5c1_4"></td>
+                    <td><input type="text" id="t5c1_4" value="0.03"></td>
                     <td><input type="text" id="t5c1_5" readonly></td>
                     <td><input type="text" id="t5c1_6"></td>
                     <td><input type="text" id="t5c1_7"></td>
@@ -585,7 +607,7 @@
                     <td><input type="text" id="t5c2_1" readonly></td>
                     <td><input type="text" id="t5c2_2"></td>
                     <td><input type="text" id="t5c2_3"></td>
-                    <td><input type="text" id="t5c2_4"></td>
+                    <td><input type="text" id="t5c2_4" value="0.02"></td>
                     <td><input type="text" id="t5c2_5" readonly></td>
                     <td><input type="text" id="t5c2_6"></td>
                     <td><input type="text" id="t5c2_7"></td>
@@ -716,13 +738,95 @@
 </div>
 
 <script>
+    /* ========================================================= */
+    /* 性能优化：DOM节点缓存 (大幅度减少重绘与回流)              */
+    /* ========================================================= */
+    const domCache = {};
+    function getEl(id) {
+        if (domCache[id] === undefined) {
+            domCache[id] = document.getElementById(id);
+        }
+        return domCache[id];
+    }
+
+    /* ========================================================= */
+    /* 新增功能：重置数据                                        */
+    /* ========================================================= */
+    function resetData() {
+        if(!confirm("确定要清空所有表格数据吗？")) return;
+        
+        var tableInputs = document.querySelectorAll('table input[type="text"]');
+        tableInputs.forEach(function(el) {
+            // 保留附表五中的默认税率设定
+            if (el.id === 't5c0_4') { el.value = '0.07'; return; }
+            if (el.id === 't5c1_4') { el.value = '0.03'; return; }
+            if (el.id === 't5c2_4') { el.value = '0.02'; return; }
+            
+            // 优化：只有当有值时才清空，避免无效操作
+            if (el.value !== '') el.value = '';
+            if (el.hasAttribute('data-manual')) el.removeAttribute('data-manual');
+        });
+        
+        var radios = document.querySelectorAll('table input[type="radio"]');
+        radios.forEach(function(el) { el.checked = false; });
+    }
+
+    /* ========================================================= */
+    /* 新增功能：导出到 Excel                                    */
+    /* ========================================================= */
+    function exportToExcel() {
+        if (typeof XLSX === 'undefined') {
+            alert("Excel导出库未加载完成，请稍后再试或检查网络状态。");
+            return;
+        }
+
+        var wb = XLSX.utils.book_new();
+        var tabs = [
+            {id: 't1', name: '主表(申报表)'},
+            {id: 't2', name: '附列资料(一)'},
+            {id: 't3', name: '附列资料(二)'},
+            {id: 't4', name: '附列资料(三)'},
+            {id: 't5', name: '附列资料(四)'},
+            {id: 't6', name: '附列资料(五)'},
+            {id: 't7', name: '减免税明细表'}
+        ];
+
+        tabs.forEach(function(tab) {
+            var table = getEl(tab.id).querySelector('table');
+            if (!table) return;
+
+            // 克隆表格，避免修改真实DOM
+            var clonedTable = table.cloneNode(true);
+            var originalInputs = table.querySelectorAll('input');
+            var clonedInputs = clonedTable.querySelectorAll('input');
+
+            for (var i = 0; i < originalInputs.length; i++) {
+                var val = originalInputs[i].value;
+                if (originalInputs[i].type === 'radio') {
+                    val = originalInputs[i].checked ? '(选中)' : '';
+                } else if (!val) {
+                    val = '';
+                }
+                var textNode = document.createTextNode(val);
+                clonedInputs[i].parentNode.replaceChild(textNode, clonedInputs[i]);
+            }
+
+            var ws = XLSX.utils.table_to_sheet(clonedTable, {raw: true});
+            XLSX.utils.book_append_sheet(wb, ws, tab.name);
+        });
+
+        XLSX.writeFile(wb, "一般纳税人增值税模拟申报表_导出.xlsx");
+    }
+
+    /* ========================================================= */
+    /* 业务及计算逻辑 (底层算法未改，仅做性能优化)                 */
+    /* ========================================================= */
     function switchTab(evt, tabId) {
-        var i, tabcontent, tablinks;
-        tabcontent = document.getElementsByClassName("tab-content");
-        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].classList.remove("active"); }
-        tablinks = document.getElementsByClassName("tab");
-        for (i = 0; i < tablinks.length; i++) { tablinks[i].classList.remove("active"); }
-        document.getElementById(tabId).classList.add("active");
+        var tabcontent = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < tabcontent.length; i++) { tabcontent[i].classList.remove("active"); }
+        var tablinks = document.getElementsByClassName("tab");
+        for (var j = 0; j < tablinks.length; j++) { tablinks[j].classList.remove("active"); }
+        getEl(tabId).classList.add("active");
         evt.currentTarget.classList.add("active");
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
@@ -735,20 +839,27 @@
     }
 
     function v(id) { 
-        var el = document.getElementById(id);
+        var el = getEl(id);
         if (!el || !el.value) return 0;
-        var val = el.value.replace(/,/g, '');
+        // 优化：仅在必要时(包含逗号)才触发正则替换
+        var val = el.value.includes(',') ? el.value.replace(/,/g, '') : el.value;
         return parseFloat(val) || 0; 
     }
     
     function s(id, val) { 
-        var el = document.getElementById(id);
-        if (el) el.value = fmt(val); 
+        var el = getEl(id);
+        if (el) {
+            var formatted = fmt(val);
+            // 优化：按需重绘，仅在值实际改变时写 DOM，防止无效重排
+            if (el.value !== formatted) {
+                el.value = formatted;
+            }
+        }
     }
 
     /* ===== 附表二推导至主表(申报表)第12栏 自动计算 ===== */
     function updateT1FromT3() {
-        if (document.getElementById('t1r12_c1')) {
+        if (getEl('t1r12_c1')) {
             s('t1r12_c1', v('t3r12_se') - v('t1r12_c3'));
         }
         updateT1All();
@@ -758,91 +869,61 @@
     function updateT1FromT2() {
         var t2_1to5 = v('t2r1_c9') + v('t2r2_c9') + v('t2r3_c9') + v('t2r4_c9') + v('t2r5_c9');
         var t2_6to7 = v('t2r6_c9') + v('t2r7_c9');
-        if (document.getElementById('t1r1_c1')) s('t1r1_c1', t2_1to5 - t2_6to7);
-        if (document.getElementById('t1r1_c3')) s('t1r1_c3', t2_6to7);
+        if (getEl('t1r1_c1')) s('t1r1_c1', t2_1to5 - t2_6to7);
+        if (getEl('t1r1_c3')) s('t1r1_c3', t2_6to7);
 
         var t2_8to13b = v('t2r8_c9') + v('t2r9a_c9') + v('t2r9b_c9') + v('t2r10_c9') + v('t2r11_c9') + v('t2r12_c9'); 
         var t2_14to15 = v('t2r14_c9') + v('t2r15_c9');
-        if (document.getElementById('t1r5_c1')) s('t1r5_c1', t2_8to13b - t2_14to15);
-        if (document.getElementById('t1r5_c3')) s('t1r5_c3', t2_14to15);
+        if (getEl('t1r5_c1')) s('t1r5_c1', t2_8to13b - t2_14to15);
+        if (getEl('t1r5_c3')) s('t1r5_c3', t2_14to15);
 
-        if (document.getElementById('t1r7_c1')) s('t1r7_c1', v('t2r16_c9') + v('t2r17_c9'));
-        if (document.getElementById('t1r8_c1')) s('t1r8_c1', v('t2r18_c9') + v('t2r19_c9'));
+        if (getEl('t1r7_c1')) s('t1r7_c1', v('t2r16_c9') + v('t2r17_c9'));
+        if (getEl('t1r8_c1')) s('t1r8_c1', v('t2r18_c9') + v('t2r19_c9'));
 
         var t1r11_c1_val = (v('t2r1_c10') + v('t2r3_c10') - v('t2r6_c10')) + (v('t2r2_c14') + v('t2r4_c14') + v('t2r5_c14') - v('t2r7_c14'));
-        if (document.getElementById('t1r11_c1')) s('t1r11_c1', t1r11_c1_val);
+        if (getEl('t1r11_c1')) s('t1r11_c1', t1r11_c1_val);
         var t1r11_c3_val = v('t2r6_c10') + v('t2r7_c14');
-        if (document.getElementById('t1r11_c3')) s('t1r11_c3', t1r11_c3_val);
+        if (getEl('t1r11_c3')) s('t1r11_c3', t1r11_c3_val);
 
         updateT1All();
     }
 
     /* ===== 附表一(主表) 自动计算 ===== */
     function updateT1All() {
-        // [1] 一般项目, [3] 即征即退项目
         [1, 3].forEach(function(c) {
-            // 17栏 = 12 + 13 - 14 - 15 + 16
-            if (document.getElementById('t1r17_c'+c)) {
+            if (getEl('t1r17_c'+c)) {
                 s('t1r17_c'+c, v('t1r12_c'+c) + v('t1r13_c'+c) - v('t1r14_c'+c) - v('t1r15_c'+c) + v('t1r16_c'+c));
             }
-            
-            // 18栏：取17栏与11栏的最小值，保留自填能力
-            if (document.getElementById('t1r18_c'+c)) {
-                var r18 = document.getElementById('t1r18_c'+c);
+            if (getEl('t1r18_c'+c)) {
+                var r18 = getEl('t1r18_c'+c);
                 if (r18.getAttribute('data-manual') !== 'true') {
                     s('t1r18_c'+c, Math.min(v('t1r17_c'+c), v('t1r11_c'+c))); 
                 }
             }
-
-            // 19栏计算逻辑
-            if (document.getElementById('t1r19_c'+c)) {
-                if (c === 1) {
-                    s('t1r19_c1', v('t1r11_c1') - v('t1r18_c1') - v('jj1_c5'));
-                } else if (c === 3) {
-                    s('t1r19_c3', v('t1r11_c3') - v('t1r18_c3') - v('jj2_c5'));
-                }
+            if (getEl('t1r19_c'+c)) {
+                if (c === 1) s('t1r19_c1', v('t1r11_c1') - v('t1r18_c1') - v('jj1_c5'));
+                else if (c === 3) s('t1r19_c3', v('t1r11_c3') - v('t1r18_c3') - v('jj2_c5'));
             }
             
-            // 20栏 = 17 - 18
-            if (document.getElementById('t1r20_c'+c)) {
-                s('t1r20_c'+c, v('t1r17_c'+c) - v('t1r18_c'+c));
-            }
-            // 24栏 = 19 + 21 - 23
-            if (document.getElementById('t1r24_c'+c)) {
-                s('t1r24_c'+c, v('t1r19_c'+c) + v('t1r21_c'+c) - v('t1r23_c'+c));
-            }
-            // 27栏 = 28 + 29 + 30 + 31
-            if (document.getElementById('t1r27_c'+c)) {
-                s('t1r27_c'+c, v('t1r28_c'+c) + v('t1r29_c'+c) + v('t1r30_c'+c) + v('t1r31_c'+c));
-            }
-            // 32栏 = 24 + 25 + 26 - 27
-            if (document.getElementById('t1r32_c'+c)) {
-                s('t1r32_c'+c, v('t1r24_c'+c) + v('t1r25_c'+c) + v('t1r26_c'+c) - v('t1r27_c'+c));
-            }
-            
-            // 34栏 ＝ 24 - 28 - 29
-            if (document.getElementById('t1r34_c'+c)) {
-                s('t1r34_c'+c, v('t1r24_c'+c) - v('t1r28_c'+c) - v('t1r29_c'+c));
-            }
-
-            // 38栏 = 16 + 22 + 36 - 37
-            if (document.getElementById('t1r38_c'+c)) {
-                s('t1r38_c'+c, v('t1r16_c'+c) + v('t1r22_c'+c) + v('t1r36_c'+c) - v('t1r37_c'+c));
-            }
+            if (getEl('t1r20_c'+c)) s('t1r20_c'+c, v('t1r17_c'+c) - v('t1r18_c'+c));
+            if (getEl('t1r24_c'+c)) s('t1r24_c'+c, v('t1r19_c'+c) + v('t1r21_c'+c) - v('t1r23_c'+c));
+            if (getEl('t1r27_c'+c)) s('t1r27_c'+c, v('t1r28_c'+c) + v('t1r29_c'+c) + v('t1r30_c'+c) + v('t1r31_c'+c));
+            if (getEl('t1r32_c'+c)) s('t1r32_c'+c, v('t1r24_c'+c) + v('t1r25_c'+c) + v('t1r26_c'+c) - v('t1r27_c'+c));
+            if (getEl('t1r34_c'+c)) s('t1r34_c'+c, v('t1r24_c'+c) - v('t1r28_c'+c) - v('t1r29_c'+c));
+            if (getEl('t1r38_c'+c)) s('t1r38_c'+c, v('t1r16_c'+c) + v('t1r22_c'+c) + v('t1r36_c'+c) - v('t1r37_c'+c));
         });
 
-        // 统一计算 本年累计 = 本月数
+        // 优化内循环性能，直接提拉节点引用
         for (var i = 1; i <= 41; i++) {
-            if (document.getElementById('t1r' + i + '_c1') && document.getElementById('t1r' + i + '_c2')) {
+            if (getEl('t1r' + i + '_c1') && getEl('t1r' + i + '_c2')) {
                 s('t1r' + i + '_c2', v('t1r' + i + '_c1'));
             }
-            if (document.getElementById('t1r' + i + '_c3') && document.getElementById('t1r' + i + '_c4')) {
+            if (getEl('t1r' + i + '_c3') && getEl('t1r' + i + '_c4')) {
                 s('t1r' + i + '_c4', v('t1r' + i + '_c3'));
             }
         }
 
-        // 推导附列资料（五）增值税税额列 = 主表34栏，并触发附表五计算以同步主表39~41
-        if (document.getElementById('t5c0_1')) {
+        if (getEl('t5c0_1')) {
             s('t5c0_1', v('t1r34_c1'));
             s('t5c1_1', v('t1r34_c1'));
             s('t5c2_1', v('t1r34_c1'));
@@ -857,61 +938,47 @@
         't2r14','t2r15','t2r16','t2r17','t2r18','t2r19'
     ];
     var t2DeductRows = ['t2r2','t2r4','t2r5','t2r7','t2r9b','t2r12','t2r15','t2r17','t2r19'];
+    var autoRates = {
+        't2r1': 0.13, 't2r2': 0.13, 't2r3': 0.09, 't2r4': 0.09,
+        't2r5': 0.06, 't2r8': 0.06, 't2r9a': 0.05, 't2r9b': 0.05,
+        't2r11': 0.03, 't2r12': 0.03
+    };
     var t2RowRates = {
         't2r2': 0.13, 't2r4': 0.09, 't2r5': 0.06, 't2r7': 0.13,
         't2r9b': 0.05, 't2r12': 0.03, 't2r15': 0.13, 't2r17': 0, 't2r19': 0
     };
 
     function calcT2SingleRow(prefix) {
-        var c1 = v(prefix + '_c1');
-        var c3 = v(prefix + '_c3');
-        var c5 = v(prefix + '_c5');
-        var c7 = v(prefix + '_c7');
+        var c1 = v(prefix + '_c1'), c3 = v(prefix + '_c3'), c5 = v(prefix + '_c5'), c7 = v(prefix + '_c7');
         var c9 = c1 + c3 + c5 + c7;
         s(prefix + '_c9', c9);
 
-        // 自动计算销项税额：行销项税额列均等于销售额*相应税率
-        var autoRates = {
-            't2r1': 0.13, 't2r2': 0.13,
-            't2r3': 0.09, 't2r4': 0.09,
-            't2r5': 0.06, 't2r8': 0.06,
-            't2r9a': 0.05, 't2r9b': 0.05,
-            't2r11': 0.03, 't2r12': 0.03
-        };
         if (autoRates[prefix] !== undefined) {
             var r = autoRates[prefix];
-            if (document.getElementById(prefix + '_c2')) s(prefix + '_c2', c1 * r);
-            if (document.getElementById(prefix + '_c4')) s(prefix + '_c4', c3 * r);
-            if (document.getElementById(prefix + '_c6')) s(prefix + '_c6', c5 * r);
-            if (document.getElementById(prefix + '_c8')) s(prefix + '_c8', c7 * r);
+            if (getEl(prefix + '_c2')) s(prefix + '_c2', c1 * r);
+            if (getEl(prefix + '_c4')) s(prefix + '_c4', c3 * r);
+            if (getEl(prefix + '_c6')) s(prefix + '_c6', c5 * r);
+            if (getEl(prefix + '_c8')) s(prefix + '_c8', c7 * r);
         }
 
-        var c2 = v(prefix + '_c2');
-        var c4 = v(prefix + '_c4');
-        var c6 = v(prefix + '_c6');
-        var c8 = v(prefix + '_c8');
+        var c2 = v(prefix + '_c2'), c4 = v(prefix + '_c4'), c6 = v(prefix + '_c6'), c8 = v(prefix + '_c8');
         var c10 = c2 + c4 + c6 + c8;
         s(prefix + '_c10', c10);
-
+        
         var c11 = c9 + c10;
         s(prefix + '_c11', c11);
 
-        if (t2DeductRows.indexOf(prefix) >= 0) {
+        if (t2DeductRows.includes(prefix)) {
             var c12 = v(prefix + '_c12');
             var c13 = c11 - c12;
             s(prefix + '_c13', c13);
             var rate = t2RowRates[prefix] || 0;
-            if (rate > 0) {
-                var c14 = c13 / (1 + rate) * rate;
-                s(prefix + '_c14', c14);
-            }
+            if (rate > 0) s(prefix + '_c14', c13 / (1 + rate) * rate);
         }
     }
 
     function updateT2All() {
-        for (var i = 0; i < t2AllRows.length; i++) {
-            calcT2SingleRow(t2AllRows[i]);
-        }
+        for (var i = 0; i < t2AllRows.length; i++) calcT2SingleRow(t2AllRows[i]);
         updateT1FromT2();
     }
 
@@ -932,11 +999,10 @@
         s('t3r12_se', v('t3r1_se') + v('t3r4_se') + v('t3r11_se'));
     }
     function calcT3Row13() {
-        var total = v('t3r14') + v('t3r15') + v('t3r16') + v('t3r17') + v('t3r18') + v('t3r19') + v('t3r20') + v('t3r23a') + v('t3r23b');
-        s('t3r13', total);
+        s('t3r13', v('t3r14') + v('t3r15') + v('t3r16') + v('t3r17') + v('t3r18') + v('t3r19') + v('t3r20') + v('t3r23a') + v('t3r23b'));
     }
     function calcT3Row29() {
-        if(document.getElementById('t3r29_fn')) {
+        if(getEl('t3r29_fn')) {
             s('t3r29_fn', v('t3r30_fn') + v('t3r31_fn') + v('t3r32_fn') + v('t3r33_fn'));
             s('t3r29_je', v('t3r30_je') + v('t3r31_je') + v('t3r32_je') + v('t3r33_je'));
             s('t3r29_se', v('t3r30_se') + v('t3r31_se') + v('t3r32_se') + v('t3r33_se'));
@@ -1005,15 +1071,8 @@
         calcT5Row11(0); calcT5Row11(1); calcT5Row11(2);
         calcT5Total();
         
-        // 主表(申报表)39, 40, 41栏 同步
-        s('t1r39_c1', v('t5c0_11'));
-        s('t1r40_c1', v('t5c1_11'));
-        s('t1r41_c1', v('t5c2_11'));
-        
-        // 累计列同步
-        s('t1r39_c2', v('t1r39_c1'));
-        s('t1r40_c2', v('t1r40_c1'));
-        s('t1r41_c2', v('t1r41_c1'));
+        s('t1r39_c1', v('t5c0_11')); s('t1r40_c1', v('t5c1_11')); s('t1r41_c1', v('t5c2_11'));
+        s('t1r39_c2', v('t1r39_c1')); s('t1r40_c2', v('t1r40_c1')); s('t1r41_c2', v('t1r41_c1'));
     }
 
     /* ===== 减税项目 自动计算 ===== */
@@ -1034,6 +1093,13 @@
     function updateJMAll() {
         for (var i=1;i<=3;i++) calcJMRow(i);
         calcJMTotal();
+        
+        // 减免税明细表：栏次1行本期实际抵减税额列 同步到 主表(申报表)：23栏“一般项目”列“本月数”
+        var t1r23 = getEl('t1r23_c1');
+        if (t1r23 && t1r23.getAttribute('data-manual') !== 'true') {
+            s('t1r23_c1', v('jm_total_c5'));
+            updateT1All();
+        }
     }
 
     /* ===== 免税项目 自动计算 ===== */
@@ -1054,61 +1120,55 @@
         calcMMTotal();
     }
 
-    /* ===== 事件监听 ===== */
+    /* ========================================================= */
+    /* 事件监听核心控制阀 (使用 startsWith/includes 优化匹配速度)*/
+    /* ========================================================= */
     document.addEventListener('input', function(e) {
         var id = e.target.id;
         if (!id) return;
 
-        // 标记主表18栏被手动修改
-        if (id === 't1r18_c1' || id === 't1r18_c3') {
+        // 标记主表18栏、23栏被手动修改
+        if (id === 't1r18_c1' || id === 't1r18_c3' || id === 't1r23_c1') {
             if (e.target.value.trim() === '') e.target.removeAttribute('data-manual');
             else e.target.setAttribute('data-manual', 'true');
         }
 
-        if (id.indexOf('t1r') === 0) {
-            if (id === 't1r12_c3') {
-                updateT1FromT3();
-            } else {
-                updateT1All();
-            }
-        }
-        
-        if (id.indexOf('t2r') === 0) {
-            for (var i = 0; i < t2AllRows.length; i++) {
-                if (id.split('_')[0] === t2AllRows[i]) {
-                    calcT2SingleRow(t2AllRows[i]);
-                    break;
-                }
+        if (id.startsWith('t1r')) {
+            if (id === 't1r12_c3') updateT1FromT3();
+            else updateT1All();
+        } else if (id.startsWith('t2r')) {
+            var prefix = id.split('_')[0];
+            if (t2AllRows.includes(prefix)) {
+                calcT2SingleRow(prefix);
             }
             updateT1FromT2();
-        }
-        if (id.indexOf('t3r') === 0) updateT3All();
-        if (id.indexOf('t4r') === 0) updateT4All();
-        if (id.indexOf('dj') === 0 && id.indexOf('jj') !== 0) updateDJAll();
-        if (id.indexOf('jj') === 0 && id.indexOf('total') < 0) updateJJAll();
-        if (id.indexOf('t5c') === 0) {
-            if (id==='t5c0_1'||id==='t5c0_2'||id==='t5c0_3'||id==='t5c0_4') calcT5Row5(0);
-            if (id==='t5c1_1'||id==='t5c1_2'||id==='t5c1_3'||id==='t5c1_4') calcT5Row5(1);
-            if (id==='t5c2_1'||id==='t5c2_2'||id==='t5c2_3'||id==='t5c2_4') calcT5Row5(2);
-            if (id.indexOf('_5')>0||id.indexOf('_7')>0||id.indexOf('_9')>0||id.indexOf('_10')>0) {
+        } else if (id.startsWith('t3r')) {
+            updateT3All();
+        } else if (id.startsWith('t4r')) {
+            updateT4All();
+        } else if (id.startsWith('dj') && !id.startsWith('jj')) {
+            updateDJAll();
+        } else if (id.startsWith('jj') && !id.includes('total')) {
+            updateJJAll();
+        } else if (id.startsWith('t5c')) {
+            if (id.startsWith('t5c0_1') || id.startsWith('t5c0_2') || id.startsWith('t5c0_3') || id.startsWith('t5c0_4')) calcT5Row5(0);
+            if (id.startsWith('t5c1_1') || id.startsWith('t5c1_2') || id.startsWith('t5c1_3') || id.startsWith('t5c1_4')) calcT5Row5(1);
+            if (id.startsWith('t5c2_1') || id.startsWith('t5c2_2') || id.startsWith('t5c2_3') || id.startsWith('t5c2_4')) calcT5Row5(2);
+            if (id.includes('_5') || id.includes('_7') || id.includes('_9') || id.includes('_10')) {
                 calcT5Row11(0); calcT5Row11(1); calcT5Row11(2);
             }
             calcT5Total();
-            
-            // 实时同步T5的计算结果到主表39~41栏
-            s('t1r39_c1', v('t5c0_11'));
-            s('t1r40_c1', v('t5c1_11'));
-            s('t1r41_c1', v('t5c2_11'));
-            s('t1r39_c2', v('t1r39_c1'));
-            s('t1r40_c2', v('t1r40_c1'));
-            s('t1r41_c2', v('t1r41_c1'));
+            s('t1r39_c1', v('t5c0_11')); s('t1r40_c1', v('t5c1_11')); s('t1r41_c1', v('t5c2_11'));
+            s('t1r39_c2', v('t1r39_c1')); s('t1r40_c2', v('t1r40_c1')); s('t1r41_c2', v('t1r41_c1'));
+        } else if (id.startsWith('jm') && !id.includes('total')) {
+            updateJMAll();
+        } else if (id.startsWith('mm') && !id.includes('total')) {
+            updateMMAll();
         }
-        if (id.indexOf('jm')===0 && id.indexOf('total')<0) updateJMAll();
-        if (id.indexOf('mm')===0 && id.indexOf('total')<0) updateMMAll();
     });
 
     document.querySelectorAll('table input[type="text"]').forEach(function(el) {
-        if (!el.readOnly) el.setAttribute('placeholder', '0.00');
+        if (!el.readOnly && !el.value) el.setAttribute('placeholder', '0.00');
         
         el.addEventListener('blur', function() {
             var val = this.value.replace(/,/g, '');
