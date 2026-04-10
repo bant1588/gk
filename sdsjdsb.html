@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业所得税月（季）度预缴纳税申报表</title>
+    <style>
+        body {
+            font-family: 'SimSun', 'Songti SC', serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column; /* 上下布局以容纳顶部横幅 */
+            height: 100vh;
+            background-color: #f9f9f9;
+        }
+
+        /* 顶部横幅样式 */
+        .top-banner {
+            background-color: #fff3cd;
+            color: #856404;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 15px;
+            font-weight: bold;
+            flex-shrink: 0;
+            border-bottom: 1px solid #ffeeba;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+
+        /* 主体布局包裹 */
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden; /* 保证内部可以独立滚动 */
+        }
+
+        /* 左侧导航栏样式 */
+        .sidebar {
+            width: 250px;
+            background-color: #4381e6; 
+            color: white;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            padding: 20px;
+            margin: 0;
+            background-color: #2b65c2; 
+            text-align: center;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #3871d1;
+            transition: background 0.3s;
+            font-size: 14px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: #2b65c2;
+            border-left: 4px solid #ffffff; 
+        }
+
+        /* 右侧主内容区样式 */
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: #fff;
+            position: relative; /* 为顶部固定栏提供定位参考 */
+        }
+
+        /* 固定的操作按钮区 */
+        .action-bar {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            padding: 15px 30px;
+            text-align: right;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 999; /* 保证吸顶显示在最上层 */
+        }
+
+        /* 表单容器 */
+        .form-wrapper {
+            padding: 30px;
+        }
+
+        .form-section {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .form-subtitle {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .form-header-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            text-align: center;
+            font-weight: bold;
+            background-color: #f2f2f2;
+        }
+
+        .text-center { text-align: center; }
+
+        input[type="text"], input[type="number"] {
+            width: 95%;
+            padding: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .checkbox-group label { margin-right: 15px; }
+        .indent-1 { padding-left: 20px; }
+
+        .footer-declaration {
+            font-size: 14px;
+            line-height: 2;
+            margin-top: 30px;
+            border-top: 1px solid #000;
+            padding-top: 20px;
+        }
+
+        /* 操作按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .btn-danger { background-color: #e74c3c; }
+        .btn-success { background-color: #2ecc71; }
+        .btn-primary { background-color: #4381e6; }
+        .btn:hover { opacity: 0.9; }
+
+        /* --- 新增：可点击文本样式 --- */
+        .clickable-text {
+            color: #4381e6;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .clickable-text:hover {
+            color: #2b65c2;
+        }
+
+        /* --- 新增：弹窗(Modal)样式 --- */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 2000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.5); 
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 1100px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 16px;
+            text-align: left;
+        }
+        .close-btn {
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover { color: #333; }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        .modal-footer {
+            padding: 15px 20px;
+            text-align: right;
+            border-top: 1px solid #eaeaea;
+            background-color: #f9f9f9;
+        }
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .modal-table th, .modal-table td {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            text-align: center;
+        }
+        .modal-table td:nth-child(4) {
+            text-align: left; /* 优惠事项列左对齐 */
+        }
+        .modal-input {
+            width: 100%;
+            padding: 6px;
+            text-align: right;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-banner">
+        💡本系统属于模拟系统，仅用于学习交流，具体依税务实际征税为准! 加微信进群 13519445134
+    </div>
+
+    <div class="main-wrapper">
+        <div class="sidebar">
+            <h2>申报表导航</h2>
+            <ul class="nav-menu">
+                <li class="nav-item active" onclick="switchForm('A200000', this)">A200000 预缴纳税申报表(A类)</li>
+                <li class="nav-item" onclick="switchForm('A201020', this)">A201020 资产加速折旧、摊销明细表</li>
+                <li class="nav-item" onclick="switchForm('A202000', this)">A202000 总分支机构所得税分配表</li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            <div class="action-bar">
+                <button onclick="resetData()" class="btn btn-danger">重置所有数据</button>
+                <button onclick="exportToExcel()" class="btn btn-success">一键导出所有表单</button>
+            </div>
+
+            <div class="form-wrapper">
+                <div id="A200000" class="form-section active">
+                    <div style="font-weight: bold; font-size:16px;">A200000</div>
+                    <h1>中华人民共和国企业所得税月（季）度预缴纳税申报表（A类）</h1>
+                    <div class="form-subtitle">
+                        税款所属期间： ____年__月__日至____年__月__日
+                    </div>
+
+                    <div class="form-header-info">
+                        <div>纳税人识别号（统一社会信用代码）：<input type="text" style="width: 250px;"></div>
+                    </div>
+                    <div class="form-header-info">
+                        <div>纳税人名称：<input type="text" style="width: 300px;"></div>
+                        <div>金额单位：人民币元(列至角分)</div>
+                    </div>
+
+                    <table>
+                        <tr><th colspan="11">优惠及附报事项有关信息</th></tr>
+                        <tr>
+                            <td rowspan="2" class="text-center">项目</td>
+                            <td colspan="2" class="text-center">一季度</td>
+                            <td colspan="2" class="text-center">二季度</td>
+                            <td colspan="2" class="text-center">三季度</td>
+                            <td colspan="2" class="text-center">四季度</td>
+                            <td rowspan="2" class="text-center">季度平均值</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">季初</td><td class="text-center">季末</td>
+                            <td class="text-center">季初</td><td class="text-center">季末</td>
+                            <td class="text-center">季初</td><td class="text-center">季末</td>
+                            <td class="text-center">季初</td><td class="text-center">季末</td>
+                        </tr>
+                        <tr>
+                            <td>从业人数</td>
+                            <td><input type="text" id="emp_q1_s"></td><td><input type="text" id="emp_q1_e"></td>
+                            <td><input type="text" id="emp_q2_s"></td><td><input type="text" id="emp_q2_e"></td>
+                            <td><input type="text" id="emp_q3_s"></td><td><input type="text" id="emp_q3_e"></td>
+                            <td><input type="text" id="emp_q4_s"></td><td><input type="text" id="emp_q4_e"></td>
+                            <td><input type="text" id="emp_avg"></td>
+                        </tr>
+                        <tr>
+                            <td>资产总额（万元）</td>
+                            <td><input type="text" id="ast_q1_s"></td><td><input type="text" id="ast_q1_e"></td>
+                            <td><input type="text" id="ast_q2_s"></td><td><input type="text" id="ast_q2_e"></td>
+                            <td><input type="text" id="ast_q3_s"></td><td><input type="text" id="ast_q3_e"></td>
+                            <td><input type="text" id="ast_q4_s"></td><td><input type="text" id="ast_q4_e"></td>
+                            <td><input type="text" id="ast_avg"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">国家限制或禁止行业</td>
+                            <td colspan="3"><label><input type="radio" name="r1"> 是</label> <label><input type="radio" name="r1"> 否</label></td>
+                            <td colspan="2">小型微利企业</td>
+                            <td colspan="4"><label><input type="radio" name="r2"> 是</label> <label><input type="radio" name="r2"> 否</label></td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">附报事项名称</th>
+                            <th colspan="9">金额或选项</th>
+                        </tr>
+                        <tr>
+                            <td colspan="2">事项1：<label><input type="checkbox"> 职工薪酬</label></td>
+                            <td colspan="9">
+                                已计入成本费用的职工薪酬：<input type="text" style="width:150px;"> 
+                                实际支付给职工的应付职工薪酬：<input type="text" style="width:150px;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">事项2：<label><input type="checkbox"> 出口方式</label></td>
+                            <td colspan="9" class="checkbox-group">
+                                （复选：
+                                <label><input type="checkbox"> 发生了自营出口业务</label> \ 
+                                <label><input type="checkbox"> 发生了委托出口业务</label> \ 
+                                <label><input type="checkbox"> 承担了代理出口业务</label>）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">事项3：<input type="text" style="width:80%;"></td>
+                            <td colspan="9"><input type="text"></td>
+                        </tr>
+                    </table>
+
+                    <table>
+                        <tr><th colspan="3">预缴税款计算</th></tr>
+                        <tr><td class="text-center" style="width: 50px;">行次</td><td class="text-center">项  目</td><td class="text-center" style="width: 200px;">本年累计金额</td></tr>
+                        <tr><td class="text-center">1</td><td>营业收入</td><td><input type="text" id="a200_1"></td></tr>
+                        <tr><td class="text-center">1.1</td><td class="indent-1">其中：自营出口收入</td><td><input type="text"></td></tr>
+                        <tr><td class="text-center">1.2</td><td class="indent-1">委托出口收入</td><td><input type="text"></td></tr>
+                        <tr><td class="text-center">1.3</td><td class="indent-1">出口代理费收入</td><td><input type="text"></td></tr>
+                        <tr><td class="text-center">2</td><td>减：营业成本</td><td><input type="text" id="a200_2"></td></tr>
+                        <tr><td class="text-center">3</td><td>减：税金及附加</td><td><input type="text" id="a200_3"></td></tr>
+                        <tr><td class="text-center">4</td><td>减：销售费用</td><td><input type="text" id="a200_4"></td></tr>
+                        <tr><td class="text-center">5</td><td>减：管理费用</td><td><input type="text" id="a200_5"></td></tr>
+                        <tr><td class="text-center">6</td><td>减：研发费用</td><td><input type="text" id="a200_6"></td></tr>
+                        <tr><td class="text-center">7</td><td>减：财务费用</td><td><input type="text" id="a200_7"></td></tr>
+                        <tr><td class="text-center">8</td><td>加：其他收益</td><td><input type="text" id="a200_8"></td></tr>
+                        <tr><td class="text-center">9</td><td>加：投资收益（9.1+9.2+…）（损失以“－”号填列）</td><td><input type="text" id="a200_9" readonly style="background:#eee;"></td></tr>
+                        <tr><td class="text-center">9.1</td><td class="indent-1"><input type="text" placeholder="(填写投资收益事项名称)" style="width: 90%;"></td><td><input type="text" id="a200_9_1"></td></tr>
+                        <tr><td class="text-center">9.2</td><td class="indent-1"><input type="text" placeholder="(填写投资收益事项名称)" style="width: 90%;"></td><td><input type="text" id="a200_9_2"></td></tr>
+                        <tr><td class="text-center">10</td><td>加：净敞口套期收益（损失以“－”号填列）</td><td><input type="text" id="a200_10"></td></tr>
+                        <tr><td class="text-center">11</td><td>加：公允价值变动收益（损失以“－”号填列）</td><td><input type="text" id="a200_11"></td></tr>
+                        <tr><td class="text-center">12</td><td>加：信用减值损失（损失以“－”号填列）</td><td><input type="text" id="a200_12"></td></tr>
+                        <tr><td class="text-center">13</td><td>加：资产减值损失（损失以“－”号填列）</td><td><input type="text" id="a200_13"></td></tr>
+                        <tr><td class="text-center">14</td><td>加：资产处置收益（损失以“－”号填列）</td><td><input type="text" id="a200_14"></td></tr>
+                        <tr><td class="text-center">15</td><td>营业利润（亏损以“－”号填列）</td><td><input type="text" id="a200_15" readonly style="background:#eee;"></td></tr>
+                        <tr><td class="text-center">16</td><td>加：营业外收入</td><td><input type="text" id="a200_16"></td></tr>
+                        <tr><td class="text-center">17</td><td>减：营业外支出</td><td><input type="text" id="a200_17"></td></tr>
+                        <tr><td class="text-center">18</td><td>利润总额（15+16-17）</td><td><input type="text" id="a200_18" readonly style="background:#eee;"></td></tr>
+                        <tr><td class="text-center">19</td><td>加：特定业务计算的应纳税所得额</td><td><input type="text" id="a200_19"></td></tr>
+                        <tr><td class="text-center">19.1</td><td class="indent-1">其中：销售未完工产品的收入</td><td><input type="text"></td></tr>
+                        <tr><td class="text-center">20</td><td>减：不征税收入</td><td><input type="text" id="a200_20"></td></tr>
+                        
+                        <tr><td class="text-center">21</td><td>减：资产加速折旧、摊销（扣除）调减额（填写A201020）</td><td><input type="text" id="a200_21" readonly style="background:#eee;"></td></tr>
+                        
+                        <tr><td class="text-center">22</td><td><span class="clickable-text" onclick="openIncomeModal()">减：免税收入、减计收入、加计扣除（22.1+22.2+…）</span></td><td><input type="text" id="a200_22"></td></tr>
+                        <tr><td class="text-center">22.1</td><td class="indent-1"><input type="text" placeholder="（填写优惠事项名称）" style="width: 90%;"></td><td><input type="text" id="a200_22_1"></td></tr>
+                        <tr><td class="text-center">22.2</td><td class="indent-1"><input type="text" placeholder="（填写优惠事项名称）" style="width: 90%;"></td><td><input type="text" id="a200_22_2"></td></tr>
+                        
+                        <tr><td class="text-center">23</td><td><span class="clickable-text" onclick="openSdModal()">减：所得减免（23.1+23.2+……）</span></td><td><input type="text" id="a200_23"></td></tr>
+                        <tr><td class="text-center">23.1</td><td class="indent-1"><input type="text" placeholder="（填写优惠事项名称）" style="width: 90%;"></td><td><input type="text" id="a200_23_1"></td></tr>
+                        <tr><td class="text-center">23.2</td><td class="indent-1"><input type="text" placeholder="（填写优惠事项名称）" style="width: 90%;"></td><td><input type="text" id="a200_23_2"></td></tr>
+                        
+                        <tr><td class="text-center">24</td><td>减：弥补以前年度亏损</td><td><input type="text" id="a200_24"></td></tr>
+                        <tr><td class="text-center">25</td><td>实际利润额（18+19-20-21-22-23-24）\ 按照上一纳税年度应纳税所得额平均额确定的应纳税所得额</td><td><input type="text" id="a200_25" readonly style="background:#eee;"></td></tr>
+                        <tr><td class="text-center">26</td><td>税率(%)</td><td><input type="text" id="a200_26" value="25.00"></td></tr>
+                        <tr><td class="text-center">27</td><td>应纳所得税额（25×26）</td><td><input type="text" id="a200_27" readonly style="background:#eee;"></td></tr>
+                        
+                        <tr><td class="text-center">28</td><td><span class="clickable-text" onclick="openJmModal()">减：减免所得税额（28.1+28.2+……）</span></td><td><input type="text" id="a200_28"></td></tr>
+                        <tr><td class="text-center">28.1</td><td class="indent-1"><input type="text" placeholder="（填写优惠事项及代码）" style="width: 90%;"></td><td><input type="text"></td></tr>
+                        <tr><td class="text-center">28.2</td><td class="indent-1"><input type="text" placeholder="（填写优惠事项及代码）" style="width: 90%;"></td><td><input type="text"></td></tr>
+                        
+                        <tr><td class="text-center">29</td><td><span class="clickable-text" onclick="openInvestModal()">减：抵免所得税额</span></td><td><input type="text" id="a200_29"></td></tr>
+                        <tr><td class="text-center">29.1</td><td class="indent-1">其中：本年允许抵免专用设备投资额 <input type="text" placeholder="(填写专用设备投资类型)" style="width: 250px;"></td><td><input type="text"></td></tr>
+                        <tr><td class="text-center">29.2</td><td class="indent-1">本年允许抵免专用设备投资额 <input type="text" placeholder="(填写专用设备投资类型)" style="width: 250px;"></td><td><input type="text"></td></tr>
+                        <tr><td class="text-center">30</td><td>减：本年累计已预缴所得税额</td><td><input type="text" id="a200_30"></td></tr>
+                        <tr><td class="text-center">31</td><td>减：特定业务预缴（征）所得税额</td><td><input type="text" id="a200_31"></td></tr>
+                        <tr><td class="text-center">32</td><td>本期应补（退）所得税额（27-28-29-30-31） \ 税务机关确定的本期应纳所得税额</td><td><input type="text" id="a200_32" readonly style="background:#eee;"></td></tr>
+
+                        <tr><th colspan="3">汇总纳税企业总分机构税款计算</th></tr>
+                        <tr><td rowspan="4" class="text-center">33<br>总机构</td><td>总机构本期分摊应补（退）所得税额（34+35+36）</td><td><input type="text" id="a200_33" readonly style="background:#eee;"></td></tr>
+                        <tr><td class="indent-1"><span class="text-center" style="display:inline-block; width: 30px;">34</span> 其中：总机构分摊应补（退）所得税额（填写A202000表）</td><td><input type="text" id="a200_34"></td></tr>
+                        <tr><td class="indent-1"><span class="text-center" style="display:inline-block; width: 30px;">35</span> 财政集中分配应补（退）所得税额（填写A202000表）</td><td><input type="text" id="a200_35"></td></tr>
+                        <tr><td class="indent-1"><span class="text-center" style="display:inline-block; width: 30px;">36</span> 总机构主体生产经营部门分摊应补（退）所得税额（填写A202000表）</td><td><input type="text" id="a200_36"></td></tr>
+                        <tr><td rowspan="2" class="text-center">37<br>分支机构</td><td>分支机构本期分摊比例</td><td><input type="text"></td></tr>
+                        <tr><td class="indent-1"><span class="text-center" style="display:inline-block; width: 30px;">38</span> 分支机构本期分摊应补（退）所得税额</td><td><input type="text"></td></tr>
+
+                        <tr><th colspan="3">实际缴纳企业所得税计算</th></tr>
+                        <tr>
+                            <td class="text-center">39</td>
+                            <td>减：民族自治地区企业所得税地方分享部分<br>（<label><input type="checkbox"> 免征</label> <label><input type="checkbox"> 减征:减征幅度 <input type="text" style="width: 50px;"> %</label>）本期实际减免金额</td>
+                            <td><input type="text"></td>
+                        </tr>
+                        <tr><td class="text-center">40</td><td>实际应补（退）所得税额</td><td><input type="text"></td></tr>
+                    </table>
+
+                    <div class="footer-declaration">
+                        <p><strong>谨声明：</strong>本纳税申报表是根据国家税收法律法规及相关规定填报的，是真实的、可靠的、完整的。</p>
+                        <div style="margin-top: 20px;">
+                            受理人：________________ &nbsp;&nbsp; 
+                            受理税务机关（章）：________________ &nbsp;&nbsp; 
+                            受理日期：____年__月__日
+                        </div>
+                    </div>
+                </div>
+
+                <div id="A201020" class="form-section">
+                    <div style="font-weight: bold; font-size:16px;">A201020</div>
+                    <h1>资产加速折旧、摊销(扣除)优惠明细表</h1>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th rowspan="3" style="width: 40px;">行次</th>
+                                <th rowspan="3" style="width: 200px;">项目</th>
+                                <th rowspan="2" style="width: 100px;">本年享受优惠的资产原值</th>
+                                <th colspan="5">本年累计折旧\摊销（扣除）金额</th>
+                            </tr>
+                            <tr>
+                                <th style="width: 100px;">账载折旧\摊销金额</th>
+                                <th style="width: 100px;">按照税收一般规定计算的折旧\摊销金额</th>
+                                <th style="width: 100px;">享受加速政策计算的折旧\摊销金额</th>
+                                <th style="width: 100px;">纳税调减金额</th>
+                                <th style="width: 100px;">享受加速政策优惠金额</th>
+                            </tr>
+                            <tr>
+                                <th class="text-center">1</th>
+                                <th class="text-center">2</th>
+                                <th class="text-center">3</th>
+                                <th class="text-center">4</th>
+                                <th class="text-center">5</th>
+                                <th class="text-center">6（4-3）</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-center">1</td>
+                                <td>一、加速折旧、摊销（不含一次性扣除，1.1+1.2+…）</td>
+                                <td><input type="text" id="a201_1_1" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_1_2" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_1_3" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_1_4" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_1_5" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_1_6" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">1.1</td>
+                                <td class="indent-1"><input type="text" placeholder="（填写优惠事项名称）" style="width: 90%;"></td>
+                                <td><input type="text" id="a201_1_1_1"></td>
+                                <td><input type="text" id="a201_1_1_2"></td>
+                                <td><input type="text" id="a201_1_1_3"></td>
+                                <td><input type="text" id="a201_1_1_4"></td>
+                                <td><input type="text" id="a201_1_1_5"></td>
+                                <td><input type="text" id="a201_1_1_6" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">1.2</td>
+                                <td class="indent-1"><input type="text" placeholder="（填写优惠事项名称）" style="width: 90%;"></td>
+                                <td><input type="text" id="a201_1_2_1"></td>
+                                <td><input type="text" id="a201_1_2_2"></td>
+                                <td><input type="text" id="a201_1_2_3"></td>
+                                <td><input type="text" id="a201_1_2_4"></td>
+                                <td><input type="text" id="a201_1_2_5"></td>
+                                <td><input type="text" id="a201_1_2_6" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">2</td>
+                                <td>二、一次性扣除（2.1+2.2+…）</td>
+                                <td><input type="text" id="a201_2_1" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_2_2" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_2_3" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_2_4" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_2_5" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a201_2_6" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">2.1</td>
+                                <td class="indent-1"><input type="text" placeholder="（填写优惠事项名称）" style="width: 90%;"></td>
+                                <td><input type="text" id="a201_2_1_1"></td>
+                                <td><input type="text" id="a201_2_1_2"></td>
+                                <td><input type="text" id="a201_2_1_3"></td>
+                                <td><input type="text" id="a201_2_1_4"></td>
+                                <td><input type="text" id="a201_2_1_5"></td>
+                                <td><input type="text" id="a201_2_1_6" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">2.2</td>
+                                <td class="indent-1"><input type="text" placeholder="（填写优惠事项名称）" style="width: 90%;"></td>
+                                <td><input type="text" id="a201_2_2_1"></td>
+                                <td><input type="text" id="a201_2_2_2"></td>
+                                <td><input type="text" id="a201_2_2_3"></td>
+                                <td><input type="text" id="a201_2_2_4"></td>
+                                <td><input type="text" id="a201_2_2_5"></td>
+                                <td><input type="text" id="a201_2_2_6" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">3</td>
+                                <td>合计（1+2）</td>
+                                <td style="background:#f2f2f2;"><input type="text" id="a201_3_1" readonly style="background:#eee;"></td>
+                                <td style="background:#f2f2f2;"><input type="text" id="a201_3_2" readonly style="background:#eee;"></td>
+                                <td style="background:#f2f2f2;"><input type="text" id="a201_3_3" readonly style="background:#eee;"></td>
+                                <td style="background:#f2f2f2;"><input type="text" id="a201_3_4" readonly style="background:#eee;"></td>
+                                <td style="background:#f2f2f2;"><input type="text" id="a201_3_5" readonly style="background:#eee;"></td>
+                                <td style="background:#f2f2f2;"><input type="text" id="a201_3_6" readonly style="background:#eee;"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="A202000" class="form-section">
+                    <div style="font-weight: bold; font-size:16px;">A202000</div>
+                    <h1>企业所得税汇总纳税总分支机构所得税分配表</h1>
+                    <div class="form-subtitle">
+                        税款所属期间： ____年__月__日至____年__月__日
+                    </div>
+
+                    <div class="form-header-info">
+                        <div>总机构名称（盖章）：<input type="text" style="width: 250px;"></div>
+                        <div>总机构纳税人识别号（统一社会信用代码）：<input type="text" style="width: 250px;"></div>
+                        <div>金额单位：元（列至角分）</div>
+                    </div>
+
+                    <table>
+                        <tr>
+                            <th class="text-center">本年实际应纳所得税额</th>
+                            <th class="text-center">总机构直接管理建筑项目部预分所得税额</th>
+                            <th class="text-center">总机构实际应分摊所得税额</th>
+                            <th class="text-center">财政集中实际应分配所得税额</th>
+                            <th class="text-center">分支机构实际应分摊所得税额</th>
+                        </tr>
+                        <tr>
+                            <td><input type="text" id="a202_tax_1"></td>
+                            <td><input type="text" id="a202_tax_2"></td>
+                            <td><input type="text" id="a202_tax_3" readonly style="background:#eee;"></td>
+                            <td><input type="text" id="a202_tax_4" readonly style="background:#eee;"></td>
+                            <td><input type="text" id="a202_tax_5" readonly style="background:#eee;"></td>
+                        </tr>
+                    </table>
+
+                    <div style="overflow-x: auto;">
+                        <table style="min-width: 1200px;">
+                            <tr>
+                                <th rowspan="2" class="text-center">总分机构情况</th>
+                                <th rowspan="2" class="text-center">纳税人识别号（统一社会信用代码）</th>
+                                <th rowspan="2" class="text-center">机构名称</th>
+                                <th colspan="3" class="text-center">三项因素</th>
+                                <th rowspan="2" class="text-center">分摊比例</th>
+                                <th rowspan="2" class="text-center">实际应分摊所得税额</th>
+                                <th rowspan="2" class="text-center">累计已分摊所得税额</th>
+                                <th rowspan="2" class="text-center">分摊应补（退）所得税额</th>
+                                <th rowspan="2" class="text-center">民族自治地区企业所得税地方分享部分优惠金额<br>（<label><input type="checkbox"> 免征</label> <label><input type="checkbox"> 减征：减征幅度<input type="text" style="width:30px;">%</label>）</th>
+                                <th rowspan="2" class="text-center">实际分摊应补（退）所得税额</th>
+                            </tr>
+                            <tr>
+                                <th class="text-center">营业收入</th>
+                                <th class="text-center">职工薪酬</th>
+                                <th class="text-center">资产总额</th>
+                            </tr>
+                            <tr>
+                                <td class="text-center">总机构分摊</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td><input type="text" id="a202_head_act_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_head_acc_tax"></td>
+                                <td><input type="text" id="a202_head_diff_tax" readonly style="background:#eee;"></td>
+                                <td class="text-center">*</td>
+                                <td><input type="text" id="a202_head_final_tax" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">总机构财政集中分配</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td class="text-center">*</td>
+                                <td><input type="text" id="a202_fin_act_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_fin_acc_tax"></td>
+                                <td><input type="text" id="a202_fin_diff_tax" readonly style="background:#eee;"></td>
+                                <td class="text-center">*</td>
+                                <td><input type="text" id="a202_fin_final_tax" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td rowspan="3" class="text-center">分支机构分摊</td>
+                                <td><input type="text"></td>
+                                <td><input type="text"></td>
+                                <td><input type="text" id="a202_b1_rev"></td>
+                                <td><input type="text" id="a202_b1_pay"></td>
+                                <td><input type="text" id="a202_b1_ast"></td>
+                                <td><input type="text" id="a202_b1_ratio" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_b1_act_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_b1_acc_tax"></td>
+                                <td><input type="text" id="a202_b1_diff_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_b1_discount"></td>
+                                <td><input type="text" id="a202_b1_final_tax" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text"></td>
+                                <td><input type="text"></td>
+                                <td><input type="text" id="a202_b2_rev"></td>
+                                <td><input type="text" id="a202_b2_pay"></td>
+                                <td><input type="text" id="a202_b2_ast"></td>
+                                <td><input type="text" id="a202_b2_ratio" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_b2_act_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_b2_acc_tax"></td>
+                                <td><input type="text" id="a202_b2_diff_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_b2_discount"></td>
+                                <td><input type="text" id="a202_b2_final_tax" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text"></td>
+                                <td><input type="text"></td>
+                                <td><input type="text" id="a202_b3_rev"></td>
+                                <td><input type="text" id="a202_b3_pay"></td>
+                                <td><input type="text" id="a202_b3_ast"></td>
+                                <td><input type="text" id="a202_b3_ratio" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_b3_act_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_b3_acc_tax"></td>
+                                <td><input type="text" id="a202_b3_diff_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_b3_discount"></td>
+                                <td><input type="text" id="a202_b3_final_tax" readonly style="background:#eee;"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">分支机构合计</td>
+                                <td class="text-center" style="background:#eee;"></td>
+                                <td class="text-center" style="background:#eee;"></td>
+                                <td><input type="text" id="a202_bt_rev" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_bt_pay" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_bt_ast" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_bt_ratio" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_bt_act_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_bt_acc_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_bt_diff_tax" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_bt_discount" readonly style="background:#eee;"></td>
+                                <td><input type="text" id="a202_bt_final_tax" readonly style="background:#eee;"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="incomeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>免税、减计收入、加计扣除类型选项表</h2>
+                <span class="close-btn" onclick="closeIncomeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">序号</th>
+                            <th style="width: 50px;">选择</th>
+                            <th style="width: 100px;">代码</th>
+                            <th>优惠事项</th>
+                            <th style="width: 150px;">本年累计金额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td><input type="checkbox"></td><td>MSSR00021</td><td>国债利息收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>2</td><td><input type="checkbox"></td><td>MSSR00021</td><td>一般股息红利等权益性投资收益免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>3</td><td><input type="checkbox"></td><td>MSSR00022</td><td>通过沪港通投资且连续持有股满12个月取得的股息红利所得免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>4</td><td><input type="checkbox"></td><td>MSSR00023</td><td>通过深港通投资且连续持有日股满12个月取得的股息红利所得免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>5</td><td><input type="checkbox"></td><td>MSSR00024</td><td>持有创新企业CDR取得的股息红利所得免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>6</td><td><input type="checkbox"></td><td>MSSR00025</td><td>永续债利息收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>7</td><td><input type="checkbox"></td><td>MSSR00030</td><td>符合条件的非营利组织的收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>8</td><td><input type="checkbox"></td><td>MSSR00040</td><td>投资者从证券投资基金分配中取得的收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>9</td><td><input type="checkbox"></td><td>MSSR00050</td><td>取得的地方政府债券利息收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>10</td><td><input type="checkbox"></td><td>MSSR00100</td><td>取得的基础研究收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>11</td><td><input type="checkbox"></td><td>MSSRQT</td><td>免税收入其他</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>12</td><td><input type="checkbox"></td><td>MSSR99999</td><td>免税收入其他</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>13</td><td><input type="checkbox"></td><td>MSSR00060</td><td>中国清洁发展机制基金取得的收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>14</td><td><input type="checkbox"></td><td>MSSR00070</td><td>中国保险保障基金有限责任公司取得的保险保障基金等收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>15</td><td><input type="checkbox"></td><td>MSSR00080</td><td>中国奥委会取得北京冬奥组委支付的收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>16</td><td><input type="checkbox"></td><td>MSSR00090</td><td>中国残奥委会取得北京冬奥组委分期支付的收入免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>17</td><td><input type="checkbox"></td><td>JJSR00010</td><td>取得铁路债券利息收入减半征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>18</td><td><input type="checkbox"></td><td>JJSR00020</td><td>取得的社区家庭服务收入在计算应纳税所得额时减计收入</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>19</td><td><input type="checkbox"></td><td>JJSR00030</td><td>综合利用资源生产产品取得的收入在计算应纳税所得额时减计收入</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>20</td><td><input type="checkbox"></td><td>JJSRQT</td><td>减计收入其他</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>21</td><td><input type="checkbox"></td><td>JJSR99999</td><td>减计收入其他</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>22</td><td><input type="checkbox"></td><td>JJSR041</td><td>金融机构取得的涉农贷款利息收入在计算应纳税所得额时减计收入</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>23</td><td><input type="checkbox"></td><td>JJSR042</td><td>保险机构取得的涉农保费收入在计算应纳税所得额时减计收入</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>24</td><td><input type="checkbox"></td><td>JJSR043</td><td>小额贷款公司取得的农户小额贷款利息收入在计算应纳税所得额时减计收入</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>25</td><td><input type="checkbox"></td><td>JJKC011</td><td>企业开发新技术、新产品、新工艺发生的研究开发费用加计扣除(制造业按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>26</td><td><input type="checkbox"></td><td>JJKC012</td><td>企业开发新技术、新产品、新工艺发生的研究开发费用加计扣除(其他企业按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>27</td><td><input type="checkbox"></td><td>JJKC013</td><td>企业开发新技术、新产品、新工艺发生的研究开发费用加计扣除(科技型中小企业按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>28</td><td><input type="checkbox"></td><td>JJKC00014</td><td>企业开发新技术、新产品、新工艺发生的研究开发费用加计扣除(科技型中小企业按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>29</td><td><input type="checkbox"></td><td>JJKC00015</td><td>企业开发新技术、新产品、新工艺发生的研究开发费用加计扣除(按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>30</td><td><input type="checkbox"></td><td>JJKC021</td><td>企业为获得创新性、创意性、突破性的产品进行创意设计活动发生的相关费用加计扣除(制造业按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>31</td><td><input type="checkbox"></td><td>JJKC022</td><td>企业为获得创新性、创意性、突破性的产品进行创意设计活动发生的相关费用加计扣除(其他企业按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>32</td><td><input type="checkbox"></td><td>JJKC023</td><td>企业为获得创新性、创意性、突破性的产品进行创意设计活动发生的相关费用加计扣除(科技型中小企业按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>33</td><td><input type="checkbox"></td><td>JJKC00024</td><td>企业为获得创新性、创意性、突破性的产品进行创意设计活动发生的相关费用加计扣除(集成电路和工业母机企业按120%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>34</td><td><input type="checkbox"></td><td>JJKC00025</td><td>企业为获得创新性、创意性、突破性的产品进行创意设计活动发生的相关费用加计扣除(按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>35</td><td><input type="checkbox"></td><td>JJKC00031</td><td>企业投入基础研究支出加计扣除(按100%加计扣除)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="confirmIncomeModal()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sdModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>所得减免类型选项表</h2>
+                <span class="close-btn" onclick="closeSdModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">序号</th>
+                            <th style="width: 50px;">选择</th>
+                            <th style="width: 100px;">代码</th>
+                            <th>优惠事项名称</th>
+                            <th style="width: 150px;">本年累计金额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td><input type="checkbox"></td><td>SD011</td><td>从事农、林、牧、渔业项目的所得减免征收企业所得税(免税项目)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>2</td><td><input type="checkbox"></td><td>SD012</td><td>从事农、林、牧、渔业项目的所得减免征收企业所得税(减半项目)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>3</td><td><input type="checkbox"></td><td>SD021</td><td>从事国家重点扶持的公共基础设施项目(除农村饮水工程)投资经营的所得定期减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>4</td><td><input type="checkbox"></td><td>SD022</td><td>从事农村饮水工程新建项目投资经营的所得定期减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>5</td><td><input type="checkbox"></td><td>SD030</td><td>从事符合条件的环境保护、节能节水项目的所得定期减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>6</td><td><input type="checkbox"></td><td>SD041</td><td>符合条件的一般技术转让项目所得减免征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>7</td><td><input type="checkbox"></td><td>SD042</td><td>符合条件的中关村国家自主创新示范区特定区域技术转让项目所得减免征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>8</td><td><input type="checkbox"></td><td>SD050</td><td>实施清洁发展机制项目的所得定期减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>9</td><td><input type="checkbox"></td><td>SD060</td><td>符合条件的节能服务公司实施的合同能源管理项目的所得定期减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>10</td><td><input type="checkbox"></td><td>SD071</td><td>线宽小于130纳米(含)的集成电路生产项目</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>11</td><td><input type="checkbox"></td><td>SD072</td><td>线宽小于65纳米(含)或投资额超过150亿元的集成电路生产项目</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>12</td><td><input type="checkbox"></td><td>SD073</td><td>国家鼓励的线宽小于28纳米(含)的集成电路生产项目</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>13</td><td><input type="checkbox"></td><td>SD074</td><td>国家鼓励的线宽小于65纳米(含)的集成电路生产项目</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>14</td><td><input type="checkbox"></td><td>SD075</td><td>国家鼓励的线宽小于130纳米(含)的集成电路生产项目</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>15</td><td><input type="checkbox"></td><td>SD999</td><td>其他</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="confirmSdModal()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="jmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>减免所得税选项表</h2>
+                <span class="close-btn" onclick="closeJmModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">序号</th>
+                            <th style="width: 50px;">选择</th>
+                            <th style="width: 100px;">代码</th>
+                            <th>项目</th>
+                            <th style="width: 150px;">本年累计金额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td><input type="checkbox"></td><td>JMSE00100</td><td>符合条件的小型微利企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>2</td><td><input type="checkbox"></td><td>JMSE00201</td><td>高新技术企业减按15%的税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>3</td><td><input type="checkbox"></td><td>JMSE00202</td><td>经济特区和上海浦东新区新设立的高新技术企业在区内取得的所得定期减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>4</td><td><input type="checkbox"></td><td>JMSE00301A</td><td>线宽小于0.8微米(含)的集成电路生产企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>5</td><td><input type="checkbox"></td><td>JMSE00302A</td><td>线宽小于0.25微米的集成电路生产企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>6</td><td><input type="checkbox"></td><td>JMSE00303A</td><td>投资额超过80亿元的集成电路生产企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>7</td><td><input type="checkbox"></td><td>JMSE00304A</td><td>新办集成电路设计企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>8</td><td><input type="checkbox"></td><td>JMSE00305A</td><td>符合条件的软件企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>9</td><td><input type="checkbox"></td><td>JMSE00308A</td><td>线宽小于130纳米(含)的集成电路生产企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>10</td><td><input type="checkbox"></td><td>JMSE00309A</td><td>线宽小于65纳米(含)或投资额超过150亿元的集成电路生产企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>11</td><td><input type="checkbox"></td><td>JMSE00301B</td><td>国家鼓励的线宽小于28纳米(含)集成电路生产企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>12</td><td><input type="checkbox"></td><td>JMSE00302B</td><td>国家鼓励的线宽小于65纳米(含)集成电路生产企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>13</td><td><input type="checkbox"></td><td>JMSE00303B</td><td>国家鼓励的线宽小于130纳米(含)集成电路生产企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>14</td><td><input type="checkbox"></td><td>JMSE00304B</td><td>国家鼓励的集成电路设计业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>15</td><td><input type="checkbox"></td><td>JMSE00305B</td><td>国家鼓励的重点集成电路设计企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>16</td><td><input type="checkbox"></td><td>JMSE00306B</td><td>国家鼓励的集成电路装备企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>17</td><td><input type="checkbox"></td><td>JMSE00307B</td><td>集成电路材料企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>18</td><td><input type="checkbox"></td><td>JMSE00308B</td><td>国家鼓励的集成电路封装、测试企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>19</td><td><input type="checkbox"></td><td>JMSE00309B</td><td>国家鼓励的软件企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>20</td><td><input type="checkbox"></td><td>JMSE00310B</td><td>国家鼓励的重点软件企业减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>21</td><td><input type="checkbox"></td><td>JMSE00401</td><td>技术先进型服务企业(服务外包类)减按15%的税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>22</td><td><input type="checkbox"></td><td>JMSE00402</td><td>技术先进型服务企业(服务贸易类)减按15%的税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>23</td><td><input type="checkbox"></td><td>JMSE00501</td><td>动漫企业自主开发、生产动漫产品定期减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>24</td><td><input type="checkbox"></td><td>JMSE00502</td><td>经营性文化事业单位转制为企业的免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>25</td><td><input type="checkbox"></td><td>JMSE00503</td><td>符合条件的生产和装配伤残人员专门用品企业免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>26</td><td><input type="checkbox"></td><td>JMSE00504</td><td>从事污染防治的第三方企业减按15%的税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>27</td><td><input type="checkbox"></td><td>JMSE00601</td><td>设在西部地区的鼓励类产业企业减按15%的税率征收企业所得税(主营业务收入占比%)</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>28</td><td><input type="checkbox"></td><td>JMSE00602</td><td>新疆困难地区新办企业定期减免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>29</td><td><input type="checkbox"></td><td>JMSE00603</td><td>新疆喀什、霍尔果斯特殊经济开发区新办企业定期免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>30</td><td><input type="checkbox"></td><td>JMSE00605</td><td>上海自贸试验区临港新片区的重点产业企业减按15%的税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>31</td><td><input type="checkbox"></td><td>JMSE00606</td><td>海南自由贸易港鼓励类企业减按15%税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>32</td><td><input type="checkbox"></td><td>JMSE00607</td><td>福建平潭综合实验区企业减按15%税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>33</td><td><input type="checkbox"></td><td>JMSE00608</td><td>深圳前海深港现代服务业合作区企业减按15%税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>34</td><td><input type="checkbox"></td><td>JMSE00609</td><td>横琴粤澳深度合作区企业减按15%税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>35</td><td><input type="checkbox"></td><td>JMSE00610</td><td>南沙先行启动区鼓励类产业企业减按15%税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>36</td><td><input type="checkbox"></td><td>JMSE00611</td><td>河套深港科技创新合作区深圳园区特定封闭区域鼓励类产业企业减按15%的税率征收企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>37</td><td><input type="checkbox"></td><td>JMSE99999</td><td>其他</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>38</td><td><input type="checkbox"></td><td>JMSE00901</td><td>二十五、北京冬奥组委、北京冬奥会测试赛赛事组委会免征企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="confirmJmModal()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="investModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>本年允许抵免专用设备投资额</h2>
+                <span class="close-btn" onclick="closeInvestModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">序号</th>
+                            <th style="width: 50px;">选择</th>
+                            <th style="width: 100px;">代码</th>
+                            <th>优惠事项</th>
+                            <th style="width: 150px;">本年累计金额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td><input type="checkbox"></td><td>DMSE00100</td><td>环境保护专用设备投资抵免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>2</td><td><input type="checkbox"></td><td>DMSE00200</td><td>节能节水专用设备投资抵免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>3</td><td><input type="checkbox"></td><td>DMSE00300</td><td>安全生产专用设备投资抵免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>4</td><td><input type="checkbox"></td><td>DMSE00400</td><td>环境保护专用设备数字化智能化改造投入抵免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>5</td><td><input type="checkbox"></td><td>DMSE00500</td><td>节能节水专用设备数字化智能化改造投入抵免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>6</td><td><input type="checkbox"></td><td>DMSE00600</td><td>安全生产专用设备数字化智能化改造投入抵免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                        <tr><td>7</td><td><input type="checkbox"></td><td>DMSE99999</td><td>其他专用设备投资抵免企业所得税</td><td><input type="text" class="modal-input" value="0.00"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="confirmInvestModal()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 切换申报表
+        function switchForm(formId, element) {
+            var sections = document.getElementsByClassName('form-section');
+            for (var i = 0; i < sections.length; i++) {
+                sections[i].classList.remove('active');
+            }
+            var navItems = document.getElementsByClassName('nav-item');
+            for (var i = 0; i < navItems.length; i++) {
+                navItems[i].classList.remove('active');
+            }
+            document.getElementById(formId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // 修改：全局重置所有填写数据（补充清除自动填充或计算字段等特殊逻辑）
+        function resetData() {
+            if(confirm('确定要清除所有表格中填写的数据吗？')) {
+                // 清空普通输入框（排除只读的计算框以及税率默认值）
+                var inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
+                inputs.forEach(function(input) {
+                    // 当非只读，或者是通过弹窗获取的 a200_22, 23, 28, 29 时，可以清空重置
+                    if ((!input.readOnly && input.id !== 'a200_26') || 
+                        ['a200_22', 'a200_23', 'a200_28', 'a200_29'].includes(input.id)) {
+                        if(input.classList.contains('modal-input')) {
+                            input.value = '0.00'; // 弹窗输入框默认恢复0.00
+                        } else {
+                            input.value = '';
+                        }
+                    } else if (input.id === 'a200_26') {
+                        input.value = '25.00';
+                    }
+                });
+                // 清空单选复选框
+                var checks = document.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+                checks.forEach(function(check) {
+                    check.checked = false;
+                });
+                
+                // 重新触发计算
+                calcA201020();
+                calcA200000();
+                calcA202000();
+            }
+        }
+
+        // --- 各类弹窗JS逻辑 ---
+
+        // 22栏：免税收入弹窗
+        function openIncomeModal() { document.getElementById('incomeModal').style.display = 'block'; }
+        function closeIncomeModal() { document.getElementById('incomeModal').style.display = 'none'; }
+        function confirmIncomeModal() {
+            var sum = calculateModalSum('incomeModal');
+            var target = document.getElementById('a200_22');
+            if (target) target.value = sum > 0 ? formatNumber(sum) : '';
+            calcA200000();
+            closeIncomeModal();
+        }
+
+        // 23栏：所得减免弹窗
+        function openSdModal() { document.getElementById('sdModal').style.display = 'block'; }
+        function closeSdModal() { document.getElementById('sdModal').style.display = 'none'; }
+        function confirmSdModal() {
+            var sum = calculateModalSum('sdModal');
+            var target = document.getElementById('a200_23');
+            if (target) target.value = sum > 0 ? formatNumber(sum) : '';
+            calcA200000();
+            closeSdModal();
+        }
+
+        // 28栏：减免所得税额弹窗
+        function openJmModal() { document.getElementById('jmModal').style.display = 'block'; }
+        function closeJmModal() { document.getElementById('jmModal').style.display = 'none'; }
+        function confirmJmModal() {
+            var sum = calculateModalSum('jmModal');
+            var target = document.getElementById('a200_28');
+            if (target) target.value = sum > 0 ? formatNumber(sum) : '';
+            calcA200000();
+            closeJmModal();
+        }
+
+        // 29栏：抵免所得税额弹窗
+        function openInvestModal() { document.getElementById('investModal').style.display = 'block'; }
+        function closeInvestModal() { document.getElementById('investModal').style.display = 'none'; }
+        function confirmInvestModal() {
+            var sum = calculateModalSum('investModal');
+            var target = document.getElementById('a200_29');
+            if (target) target.value = sum > 0 ? formatNumber(sum) : '';
+            calcA200000();
+            closeInvestModal();
+        }
+
+        // 辅助计算弹窗总和
+        function calculateModalSum(modalId) {
+            var inputs = document.getElementById(modalId).querySelectorAll('.modal-input');
+            var sum = 0;
+            inputs.forEach(function(input) {
+                var val = parseFloat(input.value.replace(/,/g, ''));
+                if (!isNaN(val)) sum += val;
+            });
+            return sum;
+        }
+
+        // 点击弹窗外部蒙层时关闭
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // 一键导出所有表单到Excel并分页 (利用MHTML生成多Sheet工作簿)
+        function exportToExcel() {
+            var boundary = "----=_NextPart_dummy";
+            var mhtmlTop = "Mime-Version: 1.0\nContent-Type: multipart/related; boundary=\"" + boundary + "\"\n\n";
+            
+            // 构造 Excel 多 Sheet 索引的 HTML
+            var headInfo = "--" + boundary + "\nContent-Location: workbook.htm\nContent-Type: text/html; charset=utf-8\n\n";
+            headInfo += "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\" xmlns=\"http://www.w3.org/TR/REC-html40\">\n<head>\n<meta charset=\"utf-8\">\n<xml>\n <x:ExcelWorkbook>\n  <x:ExcelWorksheets>\n";
+            
+            var sections = document.querySelectorAll('.form-section');
+            var sheetsHTML = '';
+            
+            sections.forEach(function(section, index) {
+                // 读取表格容器的 ID (如: A200000) 作为 Sheet 名称
+                var sheetName = section.id; 
+                headInfo += "   <x:ExcelWorksheet>\n    <x:Name>" + sheetName + "</x:Name>\n    <x:WorksheetSource HRef=\"sheet" + index + ".htm\"/>\n   </x:ExcelWorksheet>\n";
+               
+                // 克隆当前显示的节点，防止破坏原DOM
+                var clone = section.cloneNode(true);
+                clone.style.display = 'block';
+                
+                // 格式化输入框和选择框，转换为静态文本方便导出展示
+                var inputs = clone.querySelectorAll('input[type="text"], input[type="number"]');
+                inputs.forEach(function(input) {
+                    var span = document.createElement('span');
+                    span.textContent = input.value || ' ';
+                    input.parentNode.replaceChild(span, input);
+                });
+                var checks = clone.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+                checks.forEach(function(cb) {
+                    var span = document.createElement('span');
+                    span.textContent = cb.checked ? '☑' : '☐';
+                    cb.parentNode.replaceChild(span, cb);
+                });
+                
+                // 为导出表附加必须的行内边框样式
+                var tables = clone.querySelectorAll('table');
+                tables.forEach(function(table) {
+                    table.setAttribute('border', '1');
+                    table.style.borderCollapse = 'collapse';
+                    var ths = table.querySelectorAll('th');
+                    var tds = table.querySelectorAll('td');
+                    ths.forEach(function(th) { th.style.border = '1px solid black'; });
+                    tds.forEach(function(td) { td.style.border = '1px solid black'; });
+                });
+
+               // 组合每一个 Sheet 的子 HTML
+               sheetsHTML += "--" + boundary + "\nContent-Location: sheet" + index + ".htm\nContent-Type: text/html; charset=utf-8\n\n";
+               sheetsHTML += "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\" xmlns=\"http://www.w3.org/TR/REC-html40\">\n<head>\n<meta charset=\"utf-8\">\n<style>\n table { border-collapse: collapse; width: 100%; font-family: SimSun, serif; font-size: 13px; }\n th, td { border: 1px solid black; padding: 6px; text-align: left; }\n th { background-color: #f2f2f2; text-align: center; font-weight: bold; }\n .text-center { text-align: center; }\n .indent-1 { padding-left: 20px; }\n</style>\n</head>\n<body>\n" + clone.innerHTML + "\n</body>\n</html>\n\n";
+            });
+            
+            headInfo += "  </x:ExcelWorksheets>\n </x:ExcelWorkbook>\n</xml>\n</head>\n<body></body>\n</html>\n\n";
+            
+            var mhtmlBottom = "--" + boundary + "--\n";
+            var mhtml = mhtmlTop + headInfo + sheetsHTML + mhtmlBottom;
+            
+            // 生成 Blob 文件下载，MHTML天然支持多Sheet分配
+            var blob = new Blob([mhtml], {type: "application/vnd.ms-excel;charset=utf-8"});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = '企业所得税预缴纳税申报表_多Sheet导出.xls';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 数值格式化辅助函数
+        function formatNumber(num, decimals) {
+            decimals = decimals !== undefined ? decimals : 2;
+            if (num === '' || num === null || num === undefined || isNaN(num)) return '';
+            return Number(num).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        }
+
+        function getNum(id) {
+            var el = document.getElementById(id);
+            if (!el || el.value.trim() === '') return 0;
+            var rawStr = el.value.replace(/,/g, '');
+            var val = parseFloat(rawStr);
+            return isNaN(val) ? 0 : val;
+        }
+
+        function isBlank(ids) {
+            return ids.every(function(id) {
+                var el = document.getElementById(id);
+                return !el || el.value.trim() === '';
+            });
+        }
+
+        // 计算季度平均值
+        function calcQuarterAvg(prefix) {
+            var avgId = prefix + '_avg';
+            if (document.activeElement && document.activeElement.id === avgId) return; 
+            
+            var qCount = 0;
+            var totalSum = 0;
+            for (var i = 1; i <= 4; i++) {
+                var s_id = prefix + '_q' + i + '_s';
+                var e_id = prefix + '_q' + i + '_e';
+                var s_el = document.getElementById(s_id);
+                var e_el = document.getElementById(e_id);
+                
+                if ((s_el && s_el.value.trim() !== '') || (e_el && e_el.value.trim() !== '')) {
+                    var s_val = getNum(s_id);
+                    var e_val = getNum(e_id);
+                    var q_avg = (s_val + e_val) / 2; 
+                    totalSum += q_avg;
+                    qCount++;
+                }
+            }
+            
+            if (qCount > 0) {
+                document.getElementById(avgId).value = formatNumber(totalSum / qCount);
+            } else {
+                var el = document.getElementById(avgId);
+                if (el && el.value.trim() === '') el.value = '';
+            }
+        }
+
+        // 计算 A200000
+        function calcA200000() {
+            calcQuarterAvg('emp'); 
+            calcQuarterAvg('ast'); 
+
+            var deps9 = ['a200_9_1', 'a200_9_2'];
+            if (!isBlank(deps9)) {
+                document.getElementById('a200_9').value = formatNumber(getNum('a200_9_1') + getNum('a200_9_2'));
+            } else { document.getElementById('a200_9').value = ''; }
+
+            if (document.activeElement && document.activeElement.id !== 'a200_15') {
+                var deps15 = ['a200_1', 'a200_2', 'a200_3', 'a200_4', 'a200_5', 'a200_6', 'a200_7', 'a200_8', 'a200_9', 'a200_10', 'a200_11', 'a200_12', 'a200_13', 'a200_14'];
+                var hasValue15 = deps15.some(function(id) {
+                    var el = document.getElementById(id);
+                    return el && el.value.trim() !== '';
+                });
+                if (hasValue15) {
+                    let val15 = getNum('a200_1') - getNum('a200_2') - getNum('a200_3') - getNum('a200_4') - getNum('a200_5') - getNum('a200_6') - getNum('a200_7') 
+                                + getNum('a200_8') + getNum('a200_9') + getNum('a200_10') + getNum('a200_11') + getNum('a200_12') + getNum('a200_13') + getNum('a200_14');
+                    document.getElementById('a200_15').value = formatNumber(val15);
+                } else { document.getElementById('a200_15').value = ''; }
+            }
+
+            var deps18 = ['a200_15', 'a200_16', 'a200_17'];
+            if (!isBlank(deps18)) {
+                document.getElementById('a200_18').value = formatNumber(getNum('a200_15') + getNum('a200_16') - getNum('a200_17'));
+            } else { document.getElementById('a200_18').value = ''; }
+
+            // a200_22, a200_23, a200_28, a200_29 现在由弹窗直接控制或者允许手动填写，不再累加子项目
+
+            var deps25 = ['a200_18', 'a200_19', 'a200_20', 'a200_21', 'a200_22', 'a200_23', 'a200_24'];
+            if (!isBlank(deps25)) {
+                document.getElementById('a200_25').value = formatNumber(getNum('a200_18') + getNum('a200_19') - getNum('a200_20') - getNum('a200_21') - getNum('a200_22') - getNum('a200_23') - getNum('a200_24'));
+            } else { document.getElementById('a200_25').value = ''; }
+
+            if (!isBlank(['a200_25', 'a200_26'])) {
+                var val25 = getNum('a200_25');
+                var rate = getNum('a200_26') / 100;
+                if (val25 <= 0) {
+                    document.getElementById('a200_27').value = formatNumber(0);
+                } else {
+                    document.getElementById('a200_27').value = formatNumber(val25 * rate);
+                }
+            } else { document.getElementById('a200_27').value = ''; }
+
+            var deps32 = ['a200_27', 'a200_28', 'a200_29', 'a200_30', 'a200_31'];
+            if (!isBlank(deps32)) {
+                document.getElementById('a200_32').value = formatNumber(getNum('a200_27') - getNum('a200_28') - getNum('a200_29') - getNum('a200_30') - getNum('a200_31'));
+            } else { document.getElementById('a200_32').value = ''; }
+
+            var deps33 = ['a200_34', 'a200_35', 'a200_36'];
+            if (!isBlank(deps33)) {
+                document.getElementById('a200_33').value = formatNumber(getNum('a200_34') + getNum('a200_35') + getNum('a200_36'));
+            } else { document.getElementById('a200_33').value = ''; }
+        }
+
+        // 计算 A201020
+        function calcA201020() {
+            var subRows = ['1_1', '1_2', '2_1', '2_2'];
+            for (var i = 0; i < subRows.length; i++) {
+                var r = subRows[i];
+                if (document.activeElement && document.activeElement.id !== 'a201_' + r + '_5') {
+                    var deps5 = ['a201_' + r + '_4', 'a201_' + r + '_2'];
+                    var hasVal5 = deps5.some(function(id) {
+                        var el = document.getElementById(id);
+                        return el && el.value.trim() !== '';
+                    });
+                    if (hasVal5) {
+                        document.getElementById('a201_' + r + '_5').value = formatNumber(getNum('a201_' + r + '_4') - getNum('a201_' + r + '_2'));
+                    } else { document.getElementById('a201_' + r + '_5').value = ''; }
+                }
+            }
+
+            for (var c = 1; c <= 5; c++) {
+                var deps1 = ['a201_1_1_' + c, 'a201_1_2_' + c];
+                if (!isBlank(deps1)) document.getElementById('a201_1_' + c).value = formatNumber(getNum(deps1[0]) + getNum(deps1[1]));
+                else document.getElementById('a201_1_' + c).value = '';
+
+                var deps2 = ['a201_2_1_' + c, 'a201_2_2_' + c];
+                if (!isBlank(deps2)) document.getElementById('a201_2_' + c).value = formatNumber(getNum(deps2[0]) + getNum(deps2[1]));
+                else document.getElementById('a201_2_' + c).value = '';
+
+                var deps3 = ['a201_1_' + c, 'a201_2_' + c];
+                if (!isBlank(deps3)) document.getElementById('a201_3_' + c).value = formatNumber(getNum(deps3[0]) + getNum(deps3[1]));
+                else document.getElementById('a201_3_' + c).value = '';
+            }
+
+            var allRows = ['1', '1_1', '1_2', '2', '2_1', '2_2', '3'];
+            for (var i = 0; i < allRows.length; i++) {
+                var r = allRows[i];
+                var deps6 = ['a201_' + r + '_3', 'a201_' + r + '_4'];
+                if (!isBlank(deps6)) {
+                    document.getElementById('a201_' + r + '_6').value = formatNumber(getNum(deps6[1]) - getNum(deps6[0]));
+                } else { document.getElementById('a201_' + r + '_6').value = ''; }
+            }
+
+            // 同步A201020表到A200000表的行次21
+            var a201_3_5_val = document.getElementById('a201_3_5').value;
+            var a200_21_el = document.getElementById('a200_21');
+            if (a200_21_el) {
+                a200_21_el.value = a201_3_5_val;
+            }
+        }
+
+        // 计算 A202000 
+        function calcA202000() {
+            var t1 = getNum('a202_tax_1'); 
+            var t2 = getNum('a202_tax_2'); 
+
+            var headRate = 0.25;
+            var finRate = 0.25;
+
+            var t3 = (t1 - t2) * headRate;
+            var t4 = (t1 - t2) * finRate;
+            var t5 = t1 - t2 - t3 - t4;
+
+            if(!isBlank(['a202_tax_1', 'a202_tax_2'])) {
+                document.getElementById('a202_tax_3').value = formatNumber(t3);
+                document.getElementById('a202_tax_4').value = formatNumber(t4);
+                document.getElementById('a202_tax_5').value = formatNumber(t5);
+
+                document.getElementById('a202_head_act_tax').value = formatNumber(t3);
+                document.getElementById('a202_fin_act_tax').value = formatNumber(t4);
+            } else {
+                ['a202_tax_3', 'a202_tax_4', 'a202_tax_5', 'a202_head_act_tax', 'a202_fin_act_tax'].forEach(function(id) {
+                    document.getElementById(id).value = '';
+                });
+            }
+
+            var branches = ['b1', 'b2', 'b3'];
+            var sum_rev = 0, sum_pay = 0, sum_ast = 0;
+
+            branches.forEach(function(b) {
+                sum_rev += getNum('a202_' + b + '_rev');
+                sum_pay += getNum('a202_' + b + '_pay');
+                sum_ast += getNum('a202_' + b + '_ast');
+            });
+
+            document.getElementById('a202_bt_rev').value = sum_rev ? formatNumber(sum_rev) : '';
+            document.getElementById('a202_bt_pay').value = sum_pay ? formatNumber(sum_pay) : '';
+            document.getElementById('a202_bt_ast').value = sum_ast ? formatNumber(sum_ast) : '';
+
+            var sum_ratio = 0, sum_act = 0, sum_acc = 0, sum_diff = 0, sum_disc = 0, sum_final = 0;
+
+            branches.forEach(function(b) {
+                var r_rev = sum_rev ? getNum('a202_' + b + '_rev') / sum_rev : 0;
+                var r_pay = sum_pay ? getNum('a202_' + b + '_pay') / sum_pay : 0;
+                var r_ast = sum_ast ? getNum('a202_' + b + '_ast') / sum_ast : 0;
+                
+                var hasFactors = getNum('a202_' + b + '_rev') || getNum('a202_' + b + '_pay') || getNum('a202_' + b + '_ast');
+                var ratio = hasFactors ? (r_rev * 0.35 + r_pay * 0.35 + r_ast * 0.30) : 0;
+
+                if (hasFactors) {
+                    document.getElementById('a202_' + b + '_ratio').value = formatNumber(ratio, 6);
+                    sum_ratio += ratio;
+                } else { document.getElementById('a202_' + b + '_ratio').value = ''; }
+
+                var act_tax = t5 * ratio;
+                if (!isBlank(['a202_tax_1']) && hasFactors) {
+                    document.getElementById('a202_' + b + '_act_tax').value = formatNumber(act_tax);
+                    sum_act += act_tax;
+                } else {
+                    document.getElementById('a202_' + b + '_act_tax').value = '';
+                    act_tax = 0;
+                }
+
+                var acc_tax = getNum('a202_' + b + '_acc_tax');
+                var diff_tax = act_tax - acc_tax;
+                if (!isBlank(['a202_' + b + '_act_tax', 'a202_' + b + '_acc_tax'])) {
+                    document.getElementById('a202_' + b + '_diff_tax').value = formatNumber(diff_tax);
+                } else {
+                    document.getElementById('a202_' + b + '_diff_tax').value = '';
+                    diff_tax = 0;
+                }
+                
+                sum_acc += acc_tax;
+                sum_diff += diff_tax;
+
+                var disc = getNum('a202_' + b + '_discount');
+                var final_tax = diff_tax - disc;
+                if (!isBlank(['a202_' + b + '_diff_tax'])) {
+                    document.getElementById('a202_' + b + '_final_tax').value = formatNumber(final_tax);
+                } else { document.getElementById('a202_' + b + '_final_tax').value = ''; }
+
+                sum_disc += disc;
+                sum_final += final_tax;
+            });
+
+            document.getElementById('a202_bt_ratio').value = sum_ratio ? formatNumber(sum_ratio, 6) : '';
+            document.getElementById('a202_bt_act_tax').value = sum_act ? formatNumber(sum_act) : '';
+            document.getElementById('a202_bt_acc_tax').value = sum_acc ? formatNumber(sum_acc) : '';
+            document.getElementById('a202_bt_diff_tax').value = (sum_act || sum_acc) ? formatNumber(sum_diff) : '';
+            document.getElementById('a202_bt_discount').value = sum_disc ? formatNumber(sum_disc) : '';
+            document.getElementById('a202_bt_final_tax').value = (sum_act || sum_acc) ? formatNumber(sum_final) : '';
+
+            ['head', 'fin'].forEach(function(row) {
+                var act = getNum('a202_' + row + '_act_tax');
+                var acc = getNum('a202_' + row + '_acc_tax');
+                var diff = act - acc;
+                
+                if (!isBlank(['a202_' + row + '_act_tax', 'a202_' + row + '_acc_tax'])) {
+                    document.getElementById('a202_' + row + '_diff_tax').value = formatNumber(diff);
+                    document.getElementById('a202_' + row + '_final_tax').value = formatNumber(diff);
+                } else {
+                    document.getElementById('a202_' + row + '_diff_tax').value = '';
+                    document.getElementById('a202_' + row + '_final_tax').value = '';
+                }
+            });
+        }
+
+        // 全局输入事件触发计算
+        document.addEventListener('input', function(e) {
+            if (e.target.tagName.toLowerCase() === 'input' && e.target.type === 'text') {
+                if(e.target.classList.contains('modal-input')) return;
+                calcA201020();
+                calcA200000();
+                calcA202000();
+            }
+        });
+
+        // 交互增强：千分位显示
+        document.addEventListener('focusout', function(e) {
+            if (e.target.tagName.toLowerCase() === 'input' && e.target.type === 'text') {
+                if (e.target.closest('.form-header-info')) return;
+                if (e.target.placeholder && e.target.placeholder.indexOf('名称') !== -1) return;
+                
+                var val = e.target.value.replace(/,/g, '');
+                if (val !== '' && !isNaN(val)) {
+                    var decimals = (e.target.id && e.target.id.indexOf('ratio') !== -1) ? 6 : 2;
+                    e.target.value = formatNumber(val, decimals);
+                }
+            }
+        });
+
+        document.addEventListener('focusin', function(e) {
+            if (e.target.tagName.toLowerCase() === 'input' && e.target.type === 'text') {
+                if (e.target.closest('.form-header-info')) return;
+                if (e.target.placeholder && e.target.placeholder.indexOf('名称') !== -1) return;
+                
+                var cleanVal = e.target.value.replace(/,/g, '');
+                if (cleanVal !== '' && !isNaN(cleanVal)) {
+                    e.target.value = cleanVal;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
