@@ -417,22 +417,20 @@
     function calcF1Row(rowNum) {
         let s = parseV(document.getElementById('f1_' + rowNum + '_1').value);
         let d = parseV(document.getElementById('f1_' + rowNum + '_2').value);
-        let r = parseV(document.getElementById('f1_' + rowNum + '_3').value) / 100;
+        let rateVal = parseV(document.getElementById('f1_' + rowNum + '_3').value); // 获取百分比数值
+        let r = rateVal / 100;
         let tax = 0;
 
         if (rowNum == 1) { 
-            let isGen = document.querySelector('input[name="isGeneral"]:checked')?.value;
-            let isSmallScale = document.querySelector('input[name="s1"]:checked')?.value;
-            if (isGen === '是') {
+            // 建筑服务行 (rowNum == 1) 预征税额列新的计算逻辑
+            if (rateVal === 2) {
                 tax = (s - d) / (1 + 0.09) * r;
-            } else if (isGen === '否') {
-                if (isSmallScale === '是') {
-                    tax = (s - d) / (1 + 0.01) * r;
-                } else {
-                    tax = (s - d) / (1 + 0.03) * r;
-                }
+            } else if (rateVal === 3) {
+                tax = (s - d) / (1 + 0.03) * r;
+            } else if (rateVal === 1) {
+                tax = (s - d) / (1 + 0.01) * r;
             } else {
-                tax = (s - d) / (1 + r);
+                tax = (s - d) / (1 + r); // 其他预征率默认计算
             }
         } else {
             tax = (s - d) / (1 + r);
