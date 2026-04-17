@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>增值税及附加税费申报表（小规模纳税人适用）优化版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #1890ff; --dark-blue: #0050b3; --bg-blue: #e6f7ff;
+            --border-color: #bae0ff; --bg-readonly: #f5f5f5; --text-main: #333;
+            --success-green: #52c41a; --danger-red: #f5222d;
+            --sidebar-bg: #fff; --sidebar-header: #4285f4;
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; }
+        body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; margin: 0; color: var(--text-main); display: flex; flex-direction: column; }
+        
+        .top-notice { flex-shrink: 0; background: linear-gradient(135deg, #fff7e6, #fff1d0); border-bottom: 2px solid #faad14; padding: 12px 20px; text-align: center; font-size: 15px; color: #874d00; font-weight: 500; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .top-notice .notice-icon { font-size: 18px; margin-right: 6px; }
+        .top-notice .wechat-info { display: inline-block; background: #07c160; color: #fff; padding: 2px 10px; border-radius: 4px; margin-left: 8px; font-size: 14px; font-weight: bold; }
+
+        .app-wrapper { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); border-right: 1px solid #e8e8e8; display: flex; flex-direction: column; transition: width 0.3s; flex-shrink: 0; z-index: 100; box-shadow: 2px 0 8px rgba(0,0,0,0.05); }
+        .sidebar-header { background: var(--sidebar-header); color: #fff; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold; }
+        .sidebar-header .toggle-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 18px; padding: 0; }
+        .sidebar-menu { flex: 1; overflow-y: auto; }
+        .menu-group-title { padding: 12px 16px; font-size: 14px; color: #333; display: flex; justify-content: space-between; align-items: center; }
+        .menu-item { padding: 12px 16px 12px 24px; cursor: pointer; border-left: 3px solid transparent; transition: background 0.2s; }
+        .menu-item:hover { background: #f5f5f5; }
+        .menu-item.active { background: #f0f7ff; border-left-color: var(--sidebar-header); }
+        .menu-item .item-title { font-size: 14px; margin-bottom: 4px; color: #333; }
+        .menu-item.active .item-title { color: var(--sidebar-header); }
+        .menu-item .star { color: #f5222d; margin-right: 2px; }
+        .menu-item .item-sub { font-size: 12px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar.collapsed { width: 50px; }
+        .sidebar.collapsed .sidebar-title, .sidebar.collapsed .sidebar-menu { display: none; }
+        .sidebar.collapsed .sidebar-header { justify-content: center; padding: 16px 0; }
+
+        .main-content { flex: 1; overflow-y: auto; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 1400px; margin: 0 auto; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-radius: 6px; overflow: hidden; }
+        
+        .action-bar { display: flex; justify-content: flex-end; gap: 15px; padding: 15px 20px; background: #fafafa; border-bottom: 1px solid #eee; flex-wrap: wrap; }
+        .action-btn-wrapper { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-reset { background: #fff; color: var(--danger-red); border: 1px solid var(--danger-red); }
+        .btn-reset:hover { background: var(--danger-red); color: #fff; }
+        .btn-save { background: #fff; color: var(--success-green); border: 1px solid var(--success-green); }
+        .btn-save:hover { background: var(--success-green); color: #fff; }
+        .btn-export { background: var(--primary-blue); color: #fff; }
+        .btn-export:hover { background: var(--dark-blue); }
+        .btn-hint { font-size: 12px; min-height: 18px; opacity: 0; transition: opacity 0.2s; text-align: center; }
+        .btn-hint.show { opacity: 1; }
+        .btn-hint.success { color: var(--success-green); }
+        .btn-hint.error { color: var(--danger-red); }
+
+        .header-title { text-align: center; padding: 20px 10px; }
+        .header-title h2 { margin: 0; color: var(--dark-blue); letter-spacing: 1px; }
+        .header-title p { margin: 5px 0 0; color: #666; font-size: 13px; }
+
+        .base-info { padding: 16px 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; background: #fdfdfd; border-bottom: 1px solid #f0f0f0; margin-bottom: 15px; }
+        .sub-base-info { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; border-bottom: 1px solid #f0f0f0; margin-bottom: 15px; }
+        .info-item { display: flex; align-items: center; }
+        .info-item label { width: 130px; text-align: right; color: #555; font-weight: 500; margin-right: 10px; }
+        .info-item input, .info-item div { flex: 1; padding: 6px 8px; border: 1px solid #d9d9d9; border-radius: 4px; }
+        .info-item input:focus { border-color: var(--primary-blue); outline: none; box-shadow: 0 0 0 2px rgba(24,144,255,0.2); }
+        .sub-base-info .display-taxpayer-name { border: none; background: transparent; font-weight: bold; color: var(--dark-blue); font-size: 15px; padding: 0; outline: none; box-shadow: none; }
+        .unit-hint { color: #888; font-size: 12px; }
+
+        .tab-content { display: none; padding: 20px; overflow-x: auto; animation: fade 0.25s; }
+        .tab-content.active { display: block; }
+        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; margin-bottom: 24px; }
+        th, td { border: 1px solid var(--border-color); padding: 8px 6px; vertical-align: middle; white-space: nowrap; }
+        th { background-color: var(--bg-blue); color: var(--dark-blue); font-weight: 600; }
+        .text-left { text-align: left; padding-left: 12px !important; }
+        .indent-1 { padding-left: 28px !important; color: #555; }
+        .indent-2 { padding-left: 44px !important; color: #777; }
+        td input { width: 100%; min-width: 110px; box-sizing: border-box; border: 1px solid transparent; padding: 6px 4px; text-align: right; font-weight: 500; background: transparent; outline: none; transition: 0.15s; }
+        td input:focus { border-color: var(--primary-blue); background: #fff; border-radius: 2px; }
+        td input.readonly, input.readonly { background: var(--bg-readonly); color: #888; cursor: default; }
+
+        .section-header { text-align: left; background: #f0f7ff; color: var(--dark-blue); font-weight: bold; padding: 8px 12px; border-left: 4px solid var(--primary-blue); margin: 20px 0 12px 0; }
+        .sign-area { padding: 20px; background: #fafafa; border-top: 1px solid #eee; margin-top: 20px; }
+        .sign-area .declare { color: #cf1322; font-weight: bold; margin-bottom: 15px; }
+        .sign-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 20px; line-height: 2.2; }
+        .sign-grid input { border: none; border-bottom: 1px solid #aaa; background: transparent; width: 140px; text-align: center; min-width: unset; }
+        
+        .notification { position: fixed; top: 20px; right: 20px; padding: 10px 20px; background: var(--success-green); color: white; border-radius: 6px; z-index: 1100; opacity: 0; transform: translateX(120%); transition: 0.25s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .notification.show { opacity: 1; transform: translateX(0); }
+    </style>
+</head>
+<body>
+
+<div class="top-notice">
+    <span class="notice-icon">💡</span>本系统属于模拟系统，仅用于学习交流，具体依税务实际征税为准!
+    <span class="wechat-info"><i class="fab fa-weixin"></i> 加微信进群 13519445134</span>
+</div>
+
+<div class="app-wrapper">
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">报表列表</span>
+            <button class="toggle-btn" id="toggleSidebar"><i class="fas fa-outdent"></i></button>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-group-title">增值税及附加税费申报... <i class="fas fa-chevron-up"></i></div>
+            <div class="menu-item active" data-tab="tab-main"><div class="item-title"><span class="star">*</span> 主表</div><div class="item-sub">增值税及附加税费申报表</div></div>
+            <div class="menu-item" data-tab="tab-f1"><div class="item-title">附列资料一</div><div class="item-sub">服务、不动产和无形资产扣...</div></div>
+            <div class="menu-item" data-tab="tab-f2"><div class="item-title"><span class="star">*</span> 附列资料二</div><div class="item-sub">附加税费情况表</div></div>
+            <div class="menu-item" data-tab="tab-f4"><div class="item-title">附列资料四</div><div class="item-sub">税额抵减情况表</div></div>
+            <div class="menu-item" data-tab="tab-jm"><div class="item-title">增值税减免税申报明...</div><div class="item-sub">增值税减免税申报明细表</div></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="action-bar">
+                <div class="action-btn-wrapper"><button class="action-btn btn-reset" id="resetBtn"><i class="fas fa-undo"></i> 重置数据</button><span id="reset-hint" class="btn-hint"></span></div>
+                <div class="action-btn-wrapper"><button class="action-btn btn-save" id="saveBtn"><i class="fas fa-save"></i> 保存数据</button><span id="save-hint" class="btn-hint"></span></div>
+                <div class="action-btn-wrapper"><button class="action-btn btn-export" id="exportBtn"><i class="fas fa-file-excel"></i> 导出为Excel</button><span id="export-hint" class="btn-hint"></span></div>
+            </div>
+
+            <div id="tab-main" class="tab-content active">
+                <div class="header-title"><h2>增值税及附加税费申报表（小规模纳税人适用）</h2></div>
+                <div class="base-info">
+                    <div class="info-item"><label>纳税人识别号：</label><input type="text" id="taxpayer-id" placeholder="统一社会信用代码"></div>
+                    <div class="info-item"><label>纳税人名称：</label><input type="text" id="taxpayer-name"></div>
+                    <div class="info-item"><label>税款所属期：</label><div style="display:flex;gap:5px;"><input type="date" id="period-start">至<input type="date" id="period-end"></div></div>
+                    <div class="info-item"><label>填表日期：</label><input type="date" id="fill-date"></div>
+                    <div style="grid-column:1/-1; text-align:right; color:#888; font-size:12px;">金额单位：元（列至角分）</div>
+                </div>
+                <table id="main-table">
+                    <thead>
+                        <tr><th rowspan="2">分类</th><th rowspan="2">项目</th><th rowspan="2">栏次</th><th colspan="2">本期数</th><th colspan="2">本年累计</th></tr>
+                        <tr><th>货物及劳务</th><th>服务、不动产和无形资产</th><th>货物及劳务</th><th>服务、不动产和无形资产</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="14" style="background:#f2f7fd;font-weight:bold;">一<br>、<br>计<br>税<br>依<br>据</td>
+                            <td class="text-left">（一）应征增值税不含税销售额（3%）</td><td>1</td>
+                            <td><input type="text" id="main-1-goods" class="num-input" value="0.00"></td><td><input type="text" id="main-1-service" class="num-input" value="0.00"></td>
+                            <td><input type="text" id="main-1-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-1-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">增值税专用发票不含税销售额</td><td>2</td>
+                            <td><input type="text" id="main-2-goods" class="num-input"></td><td><input type="text" id="main-2-service" class="num-input"></td>
+                            <td><input type="text"></td><td><input type="text"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">其他增值税发票不含税销售额</td><td>3</td>
+                            <td><input type="text" id="main-3-goods" class="num-input"></td><td><input type="text" id="main-3-service" class="num-input"></td>
+                            <td><input type="text"></td><td><input type="text"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">（二）应征增值税不含税销售额（5%）</td><td>4</td>
+                            <td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td><td><input type="text" id="main-4-service" class="num-input" value="0.00"></td>
+                            <td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td><td><input type="text"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">增值税专用发票不含税销售额</td><td>5</td>
+                            <td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td><td><input type="text" class="num-input"></td>
+                            <td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td><td><input type="text"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">其他增值税发票不含税销售额</td><td>6</td>
+                            <td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td><td><input type="text" class="num-input"></td>
+                            <td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td><td><input type="text"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">（三）销售使用过的固定资产不含税销售额</td><td>7(7≥8)</td>
+                            <td><input type="text" id="main-7-goods" class="num-input" value="0.00"></td><td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td>
+                            <td><input type="text"></td><td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">其中：其他增值税发票不含税销售额</td><td>8</td>
+                            <td><input type="text" class="num-input"></td><td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td>
+                            <td><input type="text"></td><td><input type="text" tabindex="-1" readonly class="readonly" value="----"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">（四）免税销售额</td><td>9</td>
+                            <td><input type="text" id="main-9-goods" tabindex="-1" readonly class="readonly" value="0.00"></td><td><input type="text" id="main-9-service" tabindex="-1" readonly class="readonly" value="0.00"></td>
+                            <td><input type="text" id="main-9-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-9-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">小微企业免税销售额</td><td>10</td>
+                            <td><input type="text" id="main-10-goods" class="num-input"></td><td><input type="text" id="main-10-service" class="num-input"></td>
+                            <td><input type="text" id="main-10-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-10-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">未达起征点销售额</td><td>11</td>
+                            <td><input type="text" id="main-11-goods" class="num-input"></td><td><input type="text" id="main-11-service" class="num-input"></td>
+                            <td><input type="text" id="main-11-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-11-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">其他免税销售额</td><td>12</td>
+                            <td><input type="text" id="main-12-goods" class="num-input"></td><td><input type="text" id="main-12-service" class="num-input"></td>
+                            <td><input type="text" id="main-12-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-12-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">（五）出口免税销售额</td><td>13(13≥14)</td>
+                            <td><input type="text" class="num-input"></td><td><input type="text" class="num-input"></td>
+                            <td><input type="text"></td><td><input type="text"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">其中：其他发票不含税销售额</td><td>14</td>
+                            <td><input type="text"></td><td><input type="text"></td>
+                            <td><input type="text"></td><td><input type="text"></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="8" style="background:#f2f7fd;font-weight:bold;">二<br>、<br>税<br>款<br>计<br>算</td>
+                            <td class="text-left">本期应纳税额</td><td>15</td>
+                            <td><input type="text" id="main-15-goods" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-15-service" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="main-15-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-15-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">本期应纳税额减征额</td><td>16</td>
+                            <td><input type="text" id="main-16-goods" class="num-input"></td><td><input type="text" id="main-16-service" class="num-input"></td>
+                            <td><input type="text" id="main-16-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-16-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">本期免税额</td><td>17</td>
+                            <td><input type="text" id="main-17-goods" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-17-service" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="main-17-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-17-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">其中：小微企业免税额</td><td>18</td>
+                            <td><input type="text" id="main-18-goods" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-18-service" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="main-18-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-18-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left indent-1">未达起征点免税额</td><td>19</td>
+                            <td><input type="text" id="main-19-goods" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-19-service" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="main-19-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-19-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">应纳税额合计</td><td>20=15-16</td>
+                            <td><input type="text" id="main-20-goods" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-20-service" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="main-20-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-20-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">本期预缴税额</td><td>21</td>
+                            <td><input type="text" id="main-21-goods" class="num-input"></td><td><input type="text" id="main-21-service" class="num-input"></td>
+                            <td><input type="text" id="main-21-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-21-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">本期应补（退）税额</td><td>22=20-21</td>
+                            <td><input type="text" id="main-22-goods" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-22-service" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="main-22-goods-cum" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="main-22-service-cum" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3" style="background:#f2f7fd;">三<br>、<br>附加</td>
+                            <td class="text-left">城市维护建设税本期应补（退）税额</td><td>23</td>
+                            <td colspan="2"><input type="text" id="main-23" tabindex="-1" readonly class="readonly"></td><td colspan="2"><input type="text"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">教育费附加本期应补（退）费额</td><td>24</td>
+                            <td colspan="2"><input type="text" id="main-24" tabindex="-1" readonly class="readonly"></td><td colspan="2"><input type="text"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">地方教育附加本期应补（退）费额</td><td>25</td>
+                            <td colspan="2"><input type="text" id="main-25" tabindex="-1" readonly class="readonly"></td><td colspan="2"><input type="text"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="sign-area">
+                    <div class="declare">声明：此表是根据国家税收法律法规及相关规定填写的，本人（单位）对填报内容的真实性、可靠性、完整性负责。</div>
+                    <div class="sign-grid">
+                        <div>纳税人（签章）：<input type="text"></div><div>经办人：<input type="text"></div><div>经办人身份证号：<input type="text"></div>
+                        <div>代理机构签章：<input type="text"></div><div style="grid-column:span 2">代理机构信用代码：<input type="text" style="width:250px"></div>
+                        <div>受理人：<input type="text"></div><div>受理税务机关（章）：<input type="text"></div><div>受理日期：<input type="date" style="border-bottom:1px solid #333;width:150px"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-f1" class="tab-content">
+                <div class="header-title"><h2>增值税及附加税费申报表附列资料（一）</h2><p>（服务、不动产和无形资产扣除项目明细）</p></div>
+                <div class="sub-base-info"><div class="info-item"><label>纳税人名称：</label><input type="text" tabindex="-1" class="readonly display-taxpayer-name" readonly></div><div class="unit-hint">金额单位：元（列至角分）</div></div>
+                
+                <div class="section-header">应税行为（3%征收率）扣除额计算</div>
+                <table><tr><th>期初余额 (1)</th><th>本期发生额 (2)</th><th>本期扣除额 (3≤1+2, 3≤5)</th><th>期末余额 (4=1+2-3)</th></tr>
+                <tr><td><input type="text" id="f1-1-begin" class="num-input"></td><td><input type="text" id="f1-2-occur" class="num-input"></td><td><input type="text" id="f1-3-deduct" class="num-input"></td><td><input type="text" id="f1-4-end" tabindex="-1" readonly class="readonly"></td></tr></table>
+                
+                <div class="section-header">应税行为（3%征收率）计税销售额计算</div>
+                <table><tr><th>全部含税收入 (5)</th><th>本期扣除额 (6=3)</th><th>含税销售额 (7=5-6)</th><th>不含税销售额 (8=7÷1.03)</th></tr>
+                <tr><td><input type="text" id="f1-5-allincome" class="num-input"></td><td><input type="text" id="f1-6-deduct" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f1-7-taxsales" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f1-8-untaxsales" class="num-input"></td></tr></table>
+                
+                <div class="section-header">应税行为（5%征收率）扣除额计算</div>
+                <table><tr><th>期初余额 (9)</th><th>本期发生额 (10)</th><th>本期扣除额 (11≤9+10, 11≤13)</th><th>期末余额 (12=9+10-11)</th></tr>
+                <tr><td><input type="text" id="f1-9-begin" class="num-input"></td><td><input type="text" id="f1-10-occur" class="num-input"></td><td><input type="text" id="f1-11-deduct" class="num-input"></td><td><input type="text" id="f1-12-end" tabindex="-1" readonly class="readonly"></td></tr></table>
+                
+                <div class="section-header">应税行为（5%征收率）计税销售额计算</div>
+                <table><tr><th>全部含税收入 (13)</th><th>本期扣除额 (14=11)</th><th>含税销售额 (15=13-14)</th><th>不含税销售额 (16=15÷1.05)</th></tr>
+                <tr><td><input type="text" id="f1-13-allincome" class="num-input"></td><td><input type="text" id="f1-14-deduct" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f1-15-taxsales" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f1-16-untaxsales" class="num-input"></td></tr></table>
+            </div>
+
+            <div id="tab-f2" class="tab-content">
+                <div class="header-title"><h2>增值税及附加税费申报表附列资料（二）</h2><p>（附加税费情况表）</p></div>
+                <div class="sub-base-info"><div class="info-item"><label>纳税人名称：</label><input type="text" tabindex="-1" class="readonly display-taxpayer-name" readonly></div><div class="unit-hint">金额单位：元（列至角分）</div></div>
+                
+                <table id="f2-table">
+                    <thead><tr><th rowspan="2">税（费）种</th><th rowspan="2">增值税税额 (1)</th><th rowspan="2">税(费)率 (2)</th><th rowspan="2">本期应纳税额<br>(3=1×2)</th><th colspan="2">本期减免税（费）额</th><th colspan="2">"六税两费"减征政策</th><th rowspan="2">本期已缴税额 (8)</th><th rowspan="2">本期应补退税额<br>(9=3-5-7-8)</th></tr>
+                    <tr><th>减免性质代码 (4)</th><th>减免税额 (5)</th><th>减征比例 (6)</th><th>减征额 (7)</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-left">城市维护建设税</td><td><input type="text" id="f2-tax-1" class="num-input"></td><td><input type="text" id="f2-rate-1" value="7%"></td><td><input type="text" id="f2-amount-1" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="f2-code-1"></td><td><input type="text" id="f2-reduce-1" class="num-input"></td><td><input type="text" id="f2-percent-1" value="50%"></td><td><input type="text" id="f2-cut-1" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="f2-paid-1" class="num-input"></td><td><input type="text" id="f2-refund-1" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">教育费附加</td><td><input type="text" id="f2-tax-2" class="num-input"></td><td><input type="text" id="f2-rate-2" value="3%"></td><td><input type="text" id="f2-amount-2" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="f2-code-2"></td><td><input type="text" id="f2-reduce-2" class="num-input"></td><td><input type="text" id="f2-percent-2" value="50%"></td><td><input type="text" id="f2-cut-2" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="f2-paid-2" class="num-input"></td><td><input type="text" id="f2-refund-2" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left">地方教育附加</td><td><input type="text" id="f2-tax-3" class="num-input"></td><td><input type="text" id="f2-rate-3" value="2%"></td><td><input type="text" id="f2-amount-3" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="f2-code-3"></td><td><input type="text" id="f2-reduce-3" class="num-input"></td><td><input type="text" id="f2-percent-3" value="50%"></td><td><input type="text" id="f2-cut-3" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="f2-paid-3" class="num-input"></td><td><input type="text" id="f2-refund-3" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-left" style="font-weight:bold">合计</td><td colspan="2">----</td><td><input type="text" id="f2-amount-total" tabindex="-1" readonly class="readonly"></td><td>----</td>
+                            <td><input type="text" id="f2-reduce-total" tabindex="-1" readonly class="readonly"></td><td>----</td><td><input type="text" id="f2-cut-total" tabindex="-1" readonly class="readonly"></td>
+                            <td><input type="text" id="f2-paid-total" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f2-refund-total" tabindex="-1" readonly class="readonly"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab-f4" class="tab-content">
+                <div class="header-title"><h2>增值税纳税申报表附列资料（四）</h2><p>（税额抵减情况表）</p></div>
+                <div class="sub-base-info"><div class="info-item"><label>纳税人名称：</label><input type="text" tabindex="-1" class="readonly display-taxpayer-name" readonly></div><div class="unit-hint">金额单位：元（列至角分）</div></div>
+                
+                <table>
+                    <thead><tr><th>序号</th><th>抵减项目</th><th>期初余额 (1)</th><th>本期发生额 (2)</th><th>本期应抵减税额(3=1+2)</th><th>本期实际抵减税额(4≤3)</th><th>期末余额(5=3-4)</th></tr></thead>
+                    <tbody>
+                        <tr><td>1</td><td class="text-left">增值税税控系统专用设备费及技术维护费</td><td><input type="text" id="f4-1-begin" class="num-input"></td><td><input type="text" id="f4-1-occur" class="num-input"></td><td><input type="text" id="f4-1-deduct" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f4-1-actual" class="num-input"></td><td><input type="text" id="f4-1-end" tabindex="-1" readonly class="readonly"></td></tr>
+                        <tr><td>2</td><td class="text-left">分支机构预征缴纳税款</td><td><input type="text" id="f4-2-begin" class="num-input"></td><td><input type="text" id="f4-2-occur" class="num-input"></td><td><input type="text" id="f4-2-deduct" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f4-2-actual" class="num-input"></td><td><input type="text" id="f4-2-end" tabindex="-1" readonly class="readonly"></td></tr>
+                        <tr><td>3</td><td class="text-left">建筑服务预征缴纳税款</td><td><input type="text" id="f4-3-begin" class="num-input"></td><td><input type="text" id="f4-3-occur" class="num-input"></td><td><input type="text" id="f4-3-deduct" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f4-3-actual" class="num-input"></td><td><input type="text" id="f4-3-end" tabindex="-1" readonly class="readonly"></td></tr>
+                        <tr><td>4</td><td class="text-left">销售不动产预征缴纳税款</td><td><input type="text" id="f4-4-begin" class="num-input"></td><td><input type="text" id="f4-4-occur" class="num-input"></td><td><input type="text" id="f4-4-deduct" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f4-4-actual" class="num-input"></td><td><input type="text" id="f4-4-end" tabindex="-1" readonly class="readonly"></td></tr>
+                        <tr><td>5</td><td class="text-left">出租不动产预征缴纳税款</td><td><input type="text" id="f4-5-begin" class="num-input"></td><td><input type="text" id="f4-5-occur" class="num-input"></td><td><input type="text" id="f4-5-deduct" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="f4-5-actual" class="num-input"></td><td><input type="text" id="f4-5-end" tabindex="-1" readonly class="readonly"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab-jm" class="tab-content">
+                <div class="header-title"><h2>增值税减免税申报明细表</h2></div>
+                <div class="sub-base-info"><div class="info-item"><label>纳税人名称：</label><input type="text" tabindex="-1" class="readonly display-taxpayer-name" readonly></div><div class="unit-hint">金额单位：元（列至角分）</div></div>
+                
+                <div class="section-header">一、减税项目</div>
+                <table>
+                    <thead><tr><th>减税性质代码及名称</th><th>栏次</th><th>期初余额 (1)</th><th>本期发生额 (2)</th><th>本期应抵减 (3=1+2)</th><th>本期实际抵减 (4≤3)</th><th>期末余额 (5=3-4)</th></tr></thead>
+                    <tbody>
+                        <tr><td class="text-left" style="font-weight:bold">合计</td><td>1</td><td><input type="text" id="jm-js-1-1" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="jm-js-1-2" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="jm-js-1-3" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="jm-js-1-4" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="jm-js-1-5" tabindex="-1" readonly class="readonly"></td></tr>
+                        <tr><td><input type="text" placeholder="××××代码及名称"></td><td>2</td><td><input type="text" id="jm-js-2-1" class="num-input"></td><td><input type="text" id="jm-js-2-2" class="num-input"></td><td><input type="text" id="jm-js-2-3" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="jm-js-2-4" class="num-input"></td><td><input type="text" id="jm-js-2-5" tabindex="-1" readonly class="readonly"></td></tr>
+                        <tr><td><input type="text" placeholder="××××代码及名称"></td><td>3</td><td><input type="text" id="jm-js-3-1" class="num-input"></td><td><input type="text" id="jm-js-3-2" class="num-input"></td><td><input type="text" id="jm-js-3-3" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="jm-js-3-4" class="num-input"></td><td><input type="text" id="jm-js-3-5" tabindex="-1" readonly class="readonly"></td></tr>
+                    </tbody>
+                </table>
+                <div class="section-header">二、免税项目</div>
+                <table>
+                    <thead><tr><th>免税性质代码及名称</th><th>栏次</th><th>免征项目销售额 (1)</th><th>免税扣除项目 (2)</th><th>扣除后免税额 (3=1-2)</th><th>对应进项税额 (4)</th><th>免税额 (5)</th></tr></thead>
+                    <tbody>
+                        <tr><td class="text-left" style="font-weight:bold">合计</td><td>7</td><td><input type="text" id="jm-ms-7-1" class="num-input"></td><td><input type="text" id="jm-ms-7-2" class="num-input"></td><td><input type="text" id="jm-ms-7-3" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="jm-ms-7-4" class="num-input"></td><td><input type="text" id="jm-ms-7-5" class="num-input"></td></tr>
+                        <tr><td class="text-left indent-1">出口免税</td><td>8</td><td><input type="text" class="num-input"></td><td colspan="4" class="readonly">----</td></tr>
+                        <tr><td class="text-left indent-2">其中：跨境服务</td><td>9</td><td><input type="text" class="num-input"></td><td colspan="4" class="readonly">----</td></tr>
+                        <tr><td><input type="text" placeholder="××××代码及名称"></td><td>10</td><td><input type="text" id="jm-ms-10-1" class="num-input"></td><td><input type="text" id="jm-ms-10-2" class="num-input"></td><td><input type="text" id="jm-ms-10-3" tabindex="-1" readonly class="readonly"></td><td><input type="text" id="jm-ms-10-4" class="num-input"></td><td><input type="text" id="jm-ms-10-5" class="num-input"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
+<script>
+(function(){
+    // 简写选择器
+    const $ = id => document.getElementById(id);
+    const $$ = sel => document.querySelectorAll(sel);
+    
+    // 数字格式化辅助函数
+    const formatNum = (num) => {
+        if(isNaN(num) || num === null || num === '') return '';
+        return Number(num).toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    };
+
+    // 获取数值：读取时动态去除逗号
+    const getNum = (id, def=0) => { 
+        let v = $(id); 
+        if(!v) return def;
+        let valStr = String(v.value).replace(/,/g, '').trim();
+        return (valStr && valStr !== '----') ? (parseFloat(valStr) || def) : def; 
+    };
+
+    // 设置数值：赋值时自动增加逗号并保留两位小数
+    const setVal = (id, val) => { 
+        let el = $(id); 
+        if(el && el.value !== '----') el.value = formatNum(val); 
+    };
+
+    // 侧边栏及选项卡交互
+    $('toggleSidebar').addEventListener('click', function() {
+        $('sidebar').classList.toggle('collapsed');
+        this.querySelector('i').className = $('sidebar').classList.contains('collapsed') ? 'fas fa-indent' : 'fas fa-outdent';
+    });
+
+    $$('.menu-item').forEach(btn => { 
+        btn.addEventListener('click', () => { 
+            $$('.tab-content, .menu-item').forEach(el => el.classList.remove('active')); 
+            $(btn.dataset.tab).classList.add('active'); 
+            btn.classList.add('active'); 
+        }); 
+    });
+
+    // 纳税人名称同步
+    const syncName = () => { $$('.display-taxpayer-name').forEach(el => el.value = $('taxpayer-name').value); };
+    $('taxpayer-name').addEventListener('input', syncName);
+
+    // 核心计算入口
+    const calcAll = () => { calculateMain(); calcF1_3(); calcF1_5(); calculateF2(); for(let i=1;i<=5;i++) calcF4(i); calcJianMian(); };
+
+    // 各表单计算逻辑
+    const calculateMain = () => {
+        // 新增逻辑：行次1自动等于行次2加行次3（前提是用户没有手动修改行次1）
+        let g2=getNum('main-2-goods'), g3=getNum('main-3-goods');
+        let s2=getNum('main-2-service'), s3=getNum('main-3-service');
+        
+        if($('main-1-goods') && $('main-1-goods').dataset.manual !== 'true') setVal('main-1-goods', g2+g3);
+        if($('main-1-service') && $('main-1-service').dataset.manual !== 'true') setVal('main-1-service', s2+s3);
+
+        let g1=getNum('main-1-goods'), s1=getNum('main-1-service'), g7=getNum('main-7-goods'), s4_5=getNum('main-4-service');
+        let g10=getNum('main-10-goods'), s10=getNum('main-10-service'), g11=getNum('main-11-goods'), s11=getNum('main-11-service'), g12=getNum('main-12-goods'), s12=getNum('main-12-service');
+        let g16=getNum('main-16-goods'), s16=getNum('main-16-service'), g21=getNum('main-21-goods'), s21=getNum('main-21-service');
+        
+        let g9=g10+g11+g12, s9=s10+s11+s12;
+        let g15=(g1+g7)*0.03, s15=(s1*0.03)+(s4_5*0.05);
+        let g20=g15-g16, s20=s15-s16;
+        let g22=g20-g21, s22=s20-s21;
+
+        setVal('main-9-goods', g9); setVal('main-9-service', s9);
+        setVal('main-15-goods', g15); setVal('main-15-service', s15);
+        setVal('main-17-goods', g9*0.03); setVal('main-17-service', s9*0.03);
+        setVal('main-18-goods', g10*0.03); setVal('main-18-service', s10*0.03);
+        setVal('main-19-goods', g11*0.03); setVal('main-19-service', s11*0.03);
+        setVal('main-20-goods', g20); setVal('main-20-service', s20);
+        setVal('main-22-goods', g22); setVal('main-22-service', s22);
+        
+        // 批量同步本年累计字段
+        const cumFields = ['1-goods','1-service','9-goods','9-service','10-goods','10-service','11-goods','11-service','12-goods','12-service','15-goods','15-service','16-goods','16-service','17-goods','17-service','18-goods','18-service','19-goods','19-service','20-goods','20-service','22-goods','22-service'];
+        cumFields.forEach(f => setVal(`main-${f}-cum`, getNum(`main-${f}`)));
+        
+        let totalTax = g22 + s22;
+        [1, 2, 3].forEach(i => { let el = $(`f2-tax-${i}`); if(el && !el.dataset.manual) setVal(`f2-tax-${i}`, totalTax); });
+    };
+    
+    const calculateF2 = () => {
+        let sums = [0, 0, 0, 0, 0]; // Amount, Reduce, Cut, Paid, Refund
+        [1, 2, 3].forEach(i => {
+            let tax = getNum(`f2-tax-${i}`);
+            let rate = parseFloat(($(`f2-rate-${i}`).value||'0%').replace('%',''))/100;
+            let reduce = getNum(`f2-reduce-${i}`);
+            let pct = parseFloat(($(`f2-percent-${i}`).value||'0%').replace('%',''))/100;
+            let paid = getNum(`f2-paid-${i}`);
+            
+            let amount = tax * rate;
+            let cut = (amount - reduce) * pct;
+            let refund = amount - reduce - cut - paid;
+            
+            setVal(`f2-amount-${i}`, amount); setVal(`f2-cut-${i}`, cut); setVal(`f2-refund-${i}`, refund);
+            sums[0]+=amount; sums[1]+=reduce; sums[2]+=cut; sums[3]+=paid; sums[4]+=refund;
+        });
+        ['amount','reduce','cut','paid','refund'].forEach((k, idx) => setVal(`f2-${k}-total`, sums[idx]));
+        [23, 24, 25].forEach((k, idx) => setVal(`main-${k}`, sums[4+idx] || getNum(`f2-refund-${idx+1}`)));
+    };
+    
+    const calcF1_3 = () => {
+        let v1=getNum('f1-1-begin'), v2=getNum('f1-2-occur'), v3=getNum('f1-3-deduct');
+        setVal('f1-4-end', v1+v2-v3); setVal('f1-6-deduct', v3);
+        let v7 = getNum('f1-5-allincome') - v3; 
+        setVal('f1-7-taxsales', v7);
+        if($('f1-8-untaxsales').dataset.manual !== 'true') setVal('f1-8-untaxsales', v7/1.03);
+    };
+
+    const calcF1_5 = () => {
+        let v9=getNum('f1-9-begin'), v10=getNum('f1-10-occur'), v11=getNum('f1-11-deduct');
+        setVal('f1-12-end', v9+v10-v11); setVal('f1-14-deduct', v11);
+        let v15 = getNum('f1-13-allincome') - v11; 
+        setVal('f1-15-taxsales', v15);
+        if($('f1-16-untaxsales').dataset.manual !== 'true') setVal('f1-16-untaxsales', v15/1.05);
+    };
+
+    const calcF4 = (row) => { 
+        let v1=getNum(`f4-${row}-begin`), v2=getNum(`f4-${row}-occur`), v4=getNum(`f4-${row}-actual`);
+        setVal(`f4-${row}-deduct`, v1+v2); setVal(`f4-${row}-end`, v1+v2-v4); 
+    };
+    
+    const calcJianMian = () => {
+        let sum = [0, 0, 0]; // [col1, col2, col4]
+        [2, 3].forEach(i => {
+            let a = getNum(`jm-js-${i}-1`), b = getNum(`jm-js-${i}-2`), d = getNum(`jm-js-${i}-4`);
+            setVal(`jm-js-${i}-3`, a+b); setVal(`jm-js-${i}-5`, a+b-d); 
+            sum[0]+=a; sum[1]+=b; sum[2]+=d;
+        });
+        setVal('jm-js-1-1', sum[0]); setVal('jm-js-1-2', sum[1]); setVal('jm-js-1-4', sum[2]);
+        setVal('jm-js-1-3', sum[0]+sum[1]); setVal('jm-js-1-5', sum[0]+sum[1]-sum[2]);
+        [7, 10].forEach(j => setVal(`jm-ms-${j}-3`, getNum(`jm-ms-${j}-1`) - getNum(`jm-ms-${j}-2`)));
+    };
+    
+    // 初始化数值格式化的焦点交互
+    const initFormat = () => {
+        $$('table input[type="text"]').forEach(inp => {
+            // 跳过百分比输入框、代码输入框等非数值字段
+            if (inp.id && (inp.id.includes('rate') || inp.id.includes('percent') || inp.id.includes('code') || inp.id.includes('taxpayer'))) return;
+            if (inp.value === '----' || (inp.value && String(inp.value).includes('%'))) return;
+            if (inp.placeholder && inp.placeholder.includes('代码')) return;
+
+            // 初始化渲染值
+            let valStr = String(inp.value).replace(/,/g, '').trim();
+            if (valStr !== '' && valStr !== '----') {
+                let num = parseFloat(valStr);
+                if (!isNaN(num)) inp.value = formatNum(num);
+            }
+            
+            // 绑定事件（防止重复绑定）
+            if (!inp.dataset.formatBound) {
+                inp.addEventListener('focus', function() {
+                    if (this.value === '----' || this.readOnly) return;
+                    // 聚焦时还原无逗号的真实数字，便于用户编辑
+                    this.value = String(this.value).replace(/,/g, '');
+                });
+
+                inp.addEventListener('blur', function() {
+                    if (this.value === '----') return;
+                    let vStr = String(this.value).replace(/,/g, '').trim();
+                    if (vStr !== '') {
+                        let val = parseFloat(vStr);
+                        // 失焦时如果输入有效则转换，如果乱填则回退到 0.00
+                        if (!isNaN(val)) {
+                            this.value = formatNum(val);
+                        } else {
+                            this.value = formatNum(0);
+                        }
+                    }
+                });
+                inp.dataset.formatBound = 'true';
+            }
+        });
+    };
+
+    // 数据操作及导出
+    const showHint = (id, msg, type) => { let el=$(id); if(el){ el.textContent=msg; el.className=`btn-hint show ${type}`; setTimeout(()=>el.classList.remove('show'),2500); } };
+    const getInputsData = () => { let data = {}; $$('input[type="text"]:not(.readonly), input[type="date"]').forEach(i => { if(i.id) data[i.id]=i.value; }); return data; };
+
+    $('resetBtn').onclick = () => {
+        if(!confirm('确定重置所有数据吗？')) return;
+        $$('input[type="text"], input[type="date"]').forEach(inp => { 
+            if(!inp.readOnly && !inp.id.includes('rate') && !inp.id.includes('percent')) {
+                inp.value = inp.classList.contains('num-input') ? '0.00' : ''; 
+            }
+        });
+        [1,2,3].forEach(i => { if($(`f2-tax-${i}`)) $(`f2-tax-${i}`).dataset.manual='false'; });
+        $('f1-8-untaxsales').dataset.manual = $('f1-16-untaxsales').dataset.manual = 'false';
+        if($('main-1-goods')) $('main-1-goods').dataset.manual = 'false';
+        if($('main-1-service')) $('main-1-service').dataset.manual = 'false';
+        syncName(); calcAll(); initFormat(); showHint('reset-hint', '数据已重置', 'success');
+    };
+
+    $('saveBtn').onclick = () => { localStorage.setItem('vatData', JSON.stringify(getInputsData())); showHint('save-hint', '已保存', 'success'); };
+    
+    const loadData = () => {
+        let raw = localStorage.getItem('vatData');
+        if(raw){ 
+            Object.entries(JSON.parse(raw)).forEach(([id, val]) => { 
+                let el=$(id); 
+                if(el && !el.readOnly) el.value=val; 
+            }); 
+        }
+        syncName(); calcAll(); initFormat();
+    };
+    
+    // 多Sheet带格式导出 
+    $('exportBtn').onclick = () => {
+        try {
+            let wb = XLSX.utils.book_new();
+            let tabs = [ {id:'tab-main', n:'主表'}, {id:'tab-f1', n:'附列资料一'}, {id:'tab-f2', n:'附列资料二'}, {id:'tab-f4', n:'附列资料四'}, {id:'tab-jm', n:'减免税明细表'} ];
+            
+            tabs.forEach(tab => {
+                let el = $(tab.id);
+                if(!el) return;
+                let tbody = document.createElement('tbody');
+                
+                const addRow = (cells, isTh = false) => {
+                    let tr = document.createElement('tr');
+                    cells.forEach(c => {
+                        let td = document.createElement(isTh ? 'th' : 'td');
+                        if(typeof c === 'object') { td.innerText = c.text || ''; if(c.cs) td.colSpan = c.cs; } 
+                        else td.innerText = c;
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                };
+
+                // 表头处理
+                let h2 = el.querySelector('h2'), p = el.querySelector('.header-title p');
+                if(h2) addRow([{text: h2.innerText, cs: 8}], true);
+                if(p) addRow([{text: p.innerText, cs: 8}], true);
+                
+                if(tab.id === 'tab-main') {
+                    addRow(['纳税人识别号：', {text: $('taxpayer-id').value, cs: 3}, '纳税人名称：', {text: $('taxpayer-name').value, cs: 3}]);
+                    addRow(['税款所属期：', {text: `${$('period-start').value} 至 ${$('period-end').value}`, cs: 3}, '填表日期：', {text: $('fill-date').value, cs: 3}]);
+                } else {
+                    addRow(['纳税人名称：', {text: $('taxpayer-name').value, cs: 7}]);
+                }
+
+                // 提取表格主体
+                Array.from(el.children).forEach(child => {
+                    if(child.classList.contains('section-header')) addRow([{text: child.innerText, cs: 8}]);
+                    else if (child.tagName === 'TABLE') {
+                        child.querySelectorAll('tr').forEach(tr => {
+                            let newTr = document.createElement('tr');
+                            tr.querySelectorAll('th,td').forEach(cell => {
+                                let newCell = document.createElement(cell.tagName);
+                                let inp = cell.querySelector('input');
+                                newCell.innerText = inp ? inp.value : cell.innerText.trim();
+                                if(cell.colSpan) newCell.colSpan = cell.colSpan;
+                                if(cell.rowSpan) newCell.rowSpan = cell.rowSpan;
+                                newTr.appendChild(newCell);
+                            });
+                            tbody.appendChild(newTr);
+                        });
+                        addRow([]);
+                    }
+                });
+
+                let table = document.createElement('table'); table.appendChild(tbody);
+                let ws = XLSX.utils.table_to_sheet(table, {raw: true});
+
+                // 统一修改样式
+                if (ws['!ref']) {
+                    const range = XLSX.utils.decode_range(ws['!ref']);
+                    let startRow = tab.id === 'tab-main' ? 3 : (p ? 3 : 2);
+                    for (let R = range.s.r; R <= range.e.r; ++R) {
+                        for (let C = range.s.c; C <= range.e.c; ++C) {
+                            const ref = XLSX.utils.encode_cell({c: C, r: R});
+                            if (!ws[ref]) continue;
+                            let style = { alignment: { vertical: "center", horizontal: "center" }, font: { name: "微软雅黑", sz: 10 } };
+                            if (R === 0 || (p && R === 1)) { style.font.bold = true; style.font.sz = (R === 0 ? 14 : 11); } 
+                            else if (R >= startRow && ws[ref].v) {
+                                style.border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
+                                if(typeof ws[ref].v === 'string' && /（一）|增值税|免税/.test(ws[ref].v)) style.alignment.horizontal = "left";
+                            }
+                            ws[ref].s = style;
+                        }
+                    }
+                    ws['!cols'] = [{wch: 28}, {wch: 20}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}];
+                }
+                XLSX.utils.book_append_sheet(wb, ws, tab.n);
+            });
+            XLSX.writeFile(wb, `增值税申报表_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showHint('export-hint', '分表导出成功', 'success');
+        } catch(e) { showHint('export-hint', '导出失败', 'error'); }
+    };
+    
+    // 事件绑定
+    $$('.num-input').forEach(inp => inp.addEventListener('input', calcAll));
+    
+    // 允许手动干预自动计算公式的字段，记录其 manual 属性
+    ['f1-8-untaxsales', 'f1-16-untaxsales', 'main-1-goods', 'main-1-service'].forEach(id => { 
+        let el=$(id); 
+        if(el) el.addEventListener('input', function(){ 
+            // 如果清空输入框，则恢复自动计算公式（即置为false）
+            this.dataset.manual = this.value.trim() !== '' ? 'true' : 'false'; 
+            calcAll(); 
+        }); 
+    });
+    
+    [1, 2, 3].forEach(i => { let el=$(`f2-tax-${i}`); if(el) el.addEventListener('input', function(){ this.dataset.manual = 'true'; calcAll(); }); });
+    
+    window.addEventListener('DOMContentLoaded', loadData);
+})();
+</script>
+</body>
+</html>
