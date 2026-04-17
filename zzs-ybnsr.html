@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>增值税及附加税费申报模拟系统（一般纳税人适用）</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<style>
+:root{--blue:#4285F4;--light-blue:#EAF2FB;--border:#A4C8E1;--txt-blue:#4285F4;}
+body{font-family:"Microsoft YaHei",SimSun,sans-serif;background:#f0f2f5;margin:0;padding:10px;font-size:13px;color:#333;}
+.sys-container{max-width:1400px;margin:0 auto;background:#fff;box-shadow:0 4px 15px rgba(0,0,0,0.1);border-radius:6px;overflow:hidden;}
+.sys-header{background:var(--blue);color:#fff;padding:18px 25px;display:flex;justify-content:space-between;align-items:center;}
+.sys-header h1{margin:0;font-size:20px;letter-spacing:1px;font-weight:500;}
+.sys-info{display:flex;flex-wrap:wrap;padding:12px 25px;background:#FAFCFF;border-bottom:2px solid var(--blue);gap:12px 20px;}
+.sys-info div{display:flex;align-items:center;font-size:13px;font-weight:500;color:#555;}
+.sys-info input{border:1px solid #ccc;padding:4px 6px;margin-left:5px;outline:none;border-radius:2px;width:140px;}
+
+/* 导航栏与主内容布局 */
+.app-body { max-width: 1400px; margin: 15px auto; display: flex; align-items: flex-start; gap: 15px; }
+.sidebar { width: 250px; background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 6px; flex-shrink: 0; transition: all 0.3s ease; overflow: hidden; display: flex; flex-direction: column; min-height: 600px; position: sticky; top: 120px; }
+.sidebar.collapsed { width: 0; opacity: 0; margin-right: -15px; } /* 折叠隐藏 */
+.sidebar-header { background: var(--blue); color: #fff; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold; }
+.toggle-btn { cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: 0.2s; }
+.toggle-btn:hover { background: rgba(255,255,255,0.2); }
+.sidebar-group { flex: 1; overflow-y: auto; }
+.group-title { padding: 15px 20px; font-size: 14px; color: #333; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid #eee; font-weight: bold; }
+.group-title svg { width: 14px; height: 14px; fill: #666; }
+.nav-item { padding: 12px 20px; cursor: pointer; border-left: 3px solid transparent; border-bottom: 1px solid #f9f9f9; transition: 0.2s; display: block; }
+.nav-item:hover { background: #f8faff; }
+.nav-item.active { background: #F0F5FF; border-left-color: var(--blue); }
+.nav-item.active .nav-title { color: var(--blue); font-weight: bold; }
+.nav-title { font-size: 14px; color: #444; margin-bottom: 5px; display: flex; align-items: center; }
+.nav-desc { font-size: 12px; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.req { color: #f44336; margin-right: 4px; font-size: 16px; line-height: 1; padding-top: 4px; }
+
+.main-content { flex: 1; min-width: 0; background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 6px; overflow-x: auto; }
+
+.tab-content{display:none;padding:25px;min-height:500px;}
+.tab-content.active{display:block;animation:fadeIn 0.4s;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.form-title{text-align:center;color:var(--blue);font-size:22px;margin:0 0 8px 0;font-weight:bold;}
+.form-subtitle{text-align:center;color:#666;margin-bottom:15px;font-size:14px;}
+
+table{width:100%;border-collapse:collapse;min-width:900px; table-layout: auto;}
+th,td{border:1px solid var(--border);padding:6px 4px;text-align:center;vertical-align:middle;}
+th{background:var(--light-blue);color:var(--blue);font-weight:bold;position:sticky;top:0;z-index:10;}
+.l{text-align:left;padding-left:12px !important;}
+.c{text-align:center;}
+.d{background:#f4f7fa;color:#a0a0a0;cursor:not-allowed;}
+.sec-title{background:#D6E4F4;font-weight:bold;text-align:left;padding-left:15px;color:var(--blue);}
+
+table input:not([type="radio"]){width:100%; min-width:90px; box-sizing: border-box; border:1px solid #d9d9d9;text-align:right;padding:4px;font-family:inherit;font-size:13px;color:#000;border-radius:2px;transition: width 0.1s;}
+table input:not([type="radio"]):focus{border-color:var(--blue);background:#FFFDF0;box-shadow:0 0 3px rgba(66,133,244,0.4);outline:none;}
+table input[readonly]{background:#E8EAED;border-color:#D0D7DE;font-weight:bold;color:#555;cursor:not-allowed;}
+
+.notice-banner{background-color:#FF6B00;border:1px solid #E55D00;color:#FFFFFF;padding:10px 20px;text-align:center;font-weight:bold;font-size:14px;margin-bottom:0;border-radius:6px 6px 0 0;position:sticky;top:0;z-index:1000;}
+.notice-banner span{color:#FFEB3B;}
+.fixed-top-section{position:sticky;top:36px;z-index:100;background-color:#f0f2f5;}
+.action-btn{background:#fff;color:var(--blue);border:none;padding:6px 14px;margin-left:10px;border-radius:4px;cursor:pointer;font-weight:bold;font-size:13px;transition:all 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.action-btn:hover{background:#DFEBF7;box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+
+/* 左侧固定折叠按钮 */
+#side-toggle-btn {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--blue);
+    padding: 12px 6px;
+    cursor: pointer;
+    border-radius: 0 6px 6px 0;
+    z-index: 1001;
+    display: none;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    transition: 0.3s;
+}
+#side-toggle-btn:hover { background: #3367D6; padding-left: 10px; }
+
+/* 附列资料(一)和(五)的特殊列宽处理 */
+#t2 td.l { min-width: 220px; }
+#t6 tbody td:first-child { min-width: 150px; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="notice-banner">💡本系统属于模拟系统，仅用于学习交流，具体依税务实际征税为准! <span>加微信进群 13519445134</span>。</div>
+<div class="fixed-top-section">
+    <div class="sys-container">
+        <div class="sys-header">
+            <h1>一般纳税人增值税模拟申报表</h1>
+            <div style="font-size:13px;font-weight:normal;">
+                <button class="action-btn" onclick="resetData()">重置数据</button>
+                <button class="action-btn" onclick="exportToExcel()">导出到Excel</button>
+            </div>
+        </div>
+        <div class="sys-info">
+            <div>纳税人识别号: <input value="91000000000000000X" style="width:160px;font-weight:bold;"></div>
+            <div>纳税人名称: <input value="*******有限公司" style="width:200px;"></div>
+            <div>当前税款所属期: <input type="date" value="2026-01-01" style="width:140px;margin-left:5px;"> 至 <input type="date" value="2026-01-31" style="width:140px;margin-left:5px;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="side-toggle-btn" onclick="toggleSidebar()" title="展开导航栏">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="#fff"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</div>
+
+<div class="app-body">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span>报表列表</span>
+            <svg class="toggle-btn" onclick="toggleSidebar()" viewBox="0 0 24 24" width="22" height="22" fill="#fff">
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+            </svg>
+        </div>
+        <div class="sidebar-group">
+            <div class="group-title">增值税及附加税费申报... 
+                <svg viewBox="0 0 24 24"><path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/></svg>
+            </div>
+            <div class="nav-item active" onclick="switchTab(event,'t1')">
+                <div class="nav-title"><span class="req">*</span> 主表</div>
+                <div class="nav-desc">增值税及附加税费申报表</div>
+            </div>
+            <div class="nav-item" onclick="switchTab(event,'t2')">
+                <div class="nav-title">附列资料(一)</div>
+                <div class="nav-desc">服务、不动产和无形资产扣..</div>
+            </div>
+            <div class="nav-item" onclick="switchTab(event,'t3')">
+                <div class="nav-title"><span class="req">*</span> 附列资料(二)</div>
+                <div class="nav-desc">附加税费情况表</div>
+            </div>
+            <div class="nav-item" onclick="switchTab(event,'t4')">
+                <div class="nav-title">附列资料(三)</div>
+                <div class="nav-desc">服务、不动产和无形资产明细</div>
+            </div>
+            <div class="nav-item" onclick="switchTab(event,'t5')">
+                <div class="nav-title">附列资料(四)</div>
+                <div class="nav-desc">税额抵减情况表</div>
+            </div>
+            <div class="nav-item" onclick="switchTab(event,'t6')">
+                <div class="nav-title">附列资料(五)</div>
+                <div class="nav-desc">附加税费情况表</div>
+            </div>
+            <div class="nav-item" onclick="switchTab(event,'t7')">
+                <div class="nav-title">减免税明细表</div>
+                <div class="nav-desc">增值税减免税申报明细表</div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div id="t1" class="tab-content active">
+            <h2 class="form-title">增值税及附加税费申报表（一般纳税人适用）</h2>
+            <div class="form-subtitle">税款所属时间：自 年 月 日至 年 月 日 &nbsp;&nbsp;&nbsp;&nbsp; 金额单位：元（列至角分）</div>
+            <table>
+                <thead>
+                    <tr><th rowspan="2" colspan="2">项 &nbsp;&nbsp; 目</th><th rowspan="2">栏次</th><th colspan="2">一般项目</th><th colspan="2">即征即退项目</th></tr>
+                    <tr><th>本月数</th><th>本年累计</th><th>本月数</th><th>本年累计</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td rowspan="10" width="40px" class="c">销<br>售<br>额</td><td class="l">（一）按适用税率计税销售额</td><td class="c">1</td><td><input id="t1r1_c1"></td><td><input id="t1r1_c2" readonly></td><td><input id="t1r1_c3"></td><td><input id="t1r1_c4" readonly></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;其中：应税货物销售额</td><td class="c">2</td><td><input id="t1r2_c1"></td><td><input id="t1r2_c2" readonly></td><td><input id="t1r2_c3"></td><td><input id="t1r2_c4" readonly></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;应税劳务销售额</td><td class="c">3</td><td><input id="t1r3_c1"></td><td><input id="t1r3_c2" readonly></td><td><input id="t1r3_c3"></td><td><input id="t1r3_c4" readonly></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;纳税检查调整的销售额</td><td class="c">4</td><td><input id="t1r4_c1"></td><td><input id="t1r4_c2" readonly></td><td><input id="t1r4_c3"></td><td><input id="t1r4_c4" readonly></td></tr>
+                    <tr><td class="l">（二）按简易办法计税销售额</td><td class="c">5</td><td><input id="t1r5_c1"></td><td><input id="t1r5_c2" readonly></td><td><input id="t1r5_c3"></td><td><input id="t1r5_c4" readonly></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;其中：纳税检查调整的销售额</td><td class="c">6</td><td><input id="t1r6_c1"></td><td><input id="t1r6_c2" readonly></td><td><input id="t1r6_c3"></td><td><input id="t1r6_c4" readonly></td></tr>
+                    <tr><td class="l">（三）免、抵、退办法出口销售额</td><td class="c">7</td><td><input id="t1r7_c1"></td><td><input id="t1r7_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">（四）免税销售额</td><td class="c">8</td><td><input id="t1r8_c1"></td><td><input id="t1r8_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;其中：免税货物销售额</td><td class="c">9</td><td><input id="t1r9_c1"></td><td><input id="t1r9_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;免税劳务销售额</td><td class="c">10</td><td><input id="t1r10_c1"></td><td><input id="t1r10_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td rowspan="14" class="c">税<br>款<br>计<br>算</td><td class="l">销项税额</td><td class="c">11</td><td><input id="t1r11_c1"></td><td><input id="t1r11_c2" readonly></td><td><input id="t1r11_c3"></td><td><input id="t1r11_c4" readonly></td></tr>
+                    <tr><td class="l">进项税额</td><td class="c">12</td><td><input id="t1r12_c1"></td><td><input id="t1r12_c2" readonly></td><td><input id="t1r12_c3"></td><td><input id="t1r12_c4" readonly></td></tr>
+                    <tr><td class="l">上期留抵税额</td><td class="c">13</td><td><input id="t1r13_c1"></td><td><input id="t1r13_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">进项税额转出</td><td class="c">14</td><td><input id="t1r14_c1" readonly></td><td><input id="t1r14_c2" readonly></td><td><input id="t1r14_c3"></td><td><input id="t1r14_c4" readonly></td></tr>
+                    <tr><td class="l">免、抵、退应退税额</td><td class="c">15</td><td><input id="t1r15_c1"></td><td><input id="t1r15_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">按适用税率计算的纳税检查应补缴税额</td><td class="c">16</td><td><input id="t1r16_c1"></td><td><input id="t1r16_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">应抵扣税额合计 (17=12+13-14-15+16)</td><td class="c">17</td><td><input id="t1r17_c1" readonly></td><td><input id="t1r17_c2" readonly></td><td><input id="t1r17_c3" readonly></td><td class="d">——</td></tr>
+                    <tr><td class="l">实际抵扣税额 (如17&lt;11，则为17，否为11)</td><td class="c">18</td><td><input id="t1r18_c1"></td><td><input id="t1r18_c2" readonly></td><td><input id="t1r18_c3"></td><td><input id="t1r18_c4" readonly></td></tr>
+                    <tr><td class="l">应纳税额 (19=11-18-加计抵减)</td><td class="c">19</td><td><input id="t1r19_c1" readonly></td><td><input id="t1r19_c2" readonly></td><td><input id="t1r19_c3" readonly></td><td><input id="t1r19_c4" readonly></td></tr>
+                    <tr><td class="l">期末留抵税额 (20=17-18)</td><td class="c">20</td><td><input id="t1r20_c1" readonly></td><td><input id="t1r20_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">简易计税办法计算的应纳税额</td><td class="c">21</td><td><input id="t1r21_c1"></td><td><input id="t1r21_c2" readonly></td><td><input id="t1r21_c3"></td><td><input id="t1r21_c4" readonly></td></tr>
+                    <tr><td class="l">按简易计税办法计算的纳税检查应补缴税额</td><td class="c">22</td><td><input id="t1r22_c1"></td><td><input id="t1r22_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">应纳税额减征额</td><td class="c">23</td><td><input id="t1r23_c1"></td><td><input id="t1r23_c2" readonly></td><td><input id="t1r23_c3"></td><td><input id="t1r23_c4" readonly></td></tr>
+                    <tr><td class="l">应纳税额合计 (24=19+21-23)</td><td class="c">24</td><td><input id="t1r24_c1" readonly></td><td><input id="t1r24_c2" readonly></td><td><input id="t1r24_c3" readonly></td><td><input id="t1r24_c4" readonly></td></tr>
+                    <tr><td rowspan="14" class="c">税<br>款<br>缴<br>纳</td><td class="l">期初未缴税额（多缴为负数）</td><td class="c">25</td><td><input id="t1r25_c1"></td><td><input id="t1r25_c2" readonly></td><td><input id="t1r25_c3"></td><td><input id="t1r25_c4" readonly></td></tr>
+                    <tr><td class="l">实收出口开具专用缴款书退税额</td><td class="c">26</td><td><input id="t1r26_c1"></td><td><input id="t1r26_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">本期已缴税额 (27=28+29+30+31)</td><td class="c">27</td><td><input id="t1r27_c1" readonly></td><td><input id="t1r27_c2" readonly></td><td><input id="t1r27_c3" readonly></td><td><input id="t1r27_c4" readonly></td></tr>
+                    <tr><td class="l">①分次预缴税额</td><td class="c">28</td><td><input id="t1r28_c1"></td><td><input id="t1r28_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">②出口开具专用缴款书预缴税额</td><td class="c">29</td><td><input id="t1r29_c1"></td><td><input id="t1r29_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">③本期缴纳上期应纳税额</td><td class="c">30</td><td><input id="t1r30_c1"></td><td><input id="t1r30_c2" readonly></td><td><input id="t1r30_c3"></td><td><input id="t1r30_c4" readonly></td></tr>
+                    <tr><td class="l">④本期缴纳欠缴税额</td><td class="c">31</td><td><input id="t1r31_c1"></td><td><input id="t1r31_c2" readonly></td><td><input id="t1r31_c3"></td><td><input id="t1r31_c4" readonly></td></tr>
+                    <tr><td class="l">期末未缴税额（多缴为负数）(32=24+25+26-27)</td><td class="c">32</td><td><input id="t1r32_c1" readonly></td><td><input id="t1r32_c2" readonly></td><td><input id="t1r32_c3" readonly></td><td><input id="t1r32_c4" readonly></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;其中：欠缴税额（≥0）(33=25+26-27)</td><td class="c">33</td><td><input id="t1r33_c1"></td><td><input id="t1r33_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">本期应补(退)税额 (34＝24-28-29)</td><td class="c">34</td><td><input id="t1r34_c1" readonly></td><td><input id="t1r34_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">即征即退实际退税额</td><td class="c">35</td><td class="d">——</td><td class="d">——</td><td><input id="t1r35_c3"></td><td><input id="t1r35_c4" readonly></td></tr>
+                    <tr><td class="l">期初未缴查补税额</td><td class="c">36</td><td><input id="t1r36_c1"></td><td><input id="t1r36_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">本期入库查补税额</td><td class="c">37</td><td><input id="t1r37_c1"></td><td><input id="t1r37_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">期末未缴查补税额 (38=16+22+36-37)</td><td class="c">38</td><td><input id="t1r38_c1" readonly></td><td><input id="t1r38_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td rowspan="3" class="c">附<br>加<br>税<br>费</td><td class="l">城市维护建设税本期应补（退）税额</td><td class="c">39</td><td><input id="t1r39_c1" readonly></td><td><input id="t1r39_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">教育费附加本期应补（退）费额</td><td class="c">40</td><td><input id="t1r40_c1" readonly></td><td><input id="t1r40_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">地方教育附加本期应补（退）费额</td><td class="c">41</td><td><input id="t1r41_c1" readonly></td><td><input id="t1r41_c2" readonly></td><td class="d">——</td><td class="d">——</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="t2" class="tab-content">
+            <h2 class="form-title">增值税及附加税费申报表附列资料（一）</h2>
+            <div class="form-subtitle">（本期销售情况明细）</div>
+            <table style="font-size:12px;">
+                <thead>
+                    <tr><th rowspan="3" colspan="2" style="min-width: 260px;">项目及栏次</th><th colspan="2">开具增值税专用发票</th><th colspan="2">开具其他发票</th><th colspan="2">未开具发票</th><th colspan="2">纳税检查调整</th><th colspan="3">合计</th><th colspan="2">服务、不动产和<br>无形资产扣除项目</th><th rowspan="2">销项(应纳)税额</th></tr>
+                    <tr><th>销售额</th><th>销项税额</th><th>销售额</th><th>销项税额</th><th>销售额</th><th>销项税额</th><th>销售额</th><th>销项税额</th><th>销售额</th><th>销项税额</th><th>价税合计</th><th>实际扣除金额</th><th>扣除后含税额</th></tr>
+                    <tr style="background:#DEEBF7;font-size:11px;"><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9=1+3+5+7</th><th>10=2+4+6+8</th><th>11=9+10</th><th>12</th><th>13=11-12</th><th>14=13/(1+税率)*税率</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td rowspan="7" width="30px" class="c">一、<br>一般<br>计税<br>方法</td><td class="l">13%税率的货物及加工修理修配劳务 (1)</td><td><input id="t2r1_c1"></td><td><input id="t2r1_c2" readonly></td><td><input id="t2r1_c3"></td><td><input id="t2r1_c4" readonly></td><td><input id="t2r1_c5"></td><td><input id="t2r1_c6" readonly></td><td><input id="t2r1_c7"></td><td><input id="t2r1_c8" readonly></td><td><input id="t2r1_c9" readonly></td><td><input id="t2r1_c10" readonly></td><td><input id="t2r1_c11" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">13%税率的服务、不动产和无形资产 (2)</td><td><input id="t2r2_c1"></td><td><input id="t2r2_c2" readonly></td><td><input id="t2r2_c3"></td><td><input id="t2r2_c4" readonly></td><td><input id="t2r2_c5"></td><td><input id="t2r2_c6" readonly></td><td><input id="t2r2_c7"></td><td><input id="t2r2_c8" readonly></td><td><input id="t2r2_c9" readonly></td><td><input id="t2r2_c10" readonly></td><td><input id="t2r2_c11" readonly></td><td><input id="t2r2_c12"></td><td><input id="t2r2_c13" readonly></td><td><input id="t2r2_c14" readonly></td></tr>
+                    <tr><td class="l">9%税率的货物及加工修理修配劳务 (3)</td><td><input id="t2r3_c1"></td><td><input id="t2r3_c2" readonly></td><td><input id="t2r3_c3"></td><td><input id="t2r3_c4" readonly></td><td><input id="t2r3_c5"></td><td><input id="t2r3_c6" readonly></td><td><input id="t2r3_c7"></td><td><input id="t2r3_c8" readonly></td><td><input id="t2r3_c9" readonly></td><td><input id="t2r3_c10" readonly></td><td><input id="t2r3_c11" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">9%税率的服务、不动产和无形资产 (4)</td><td><input id="t2r4_c1"></td><td><input id="t2r4_c2" readonly></td><td><input id="t2r4_c3"></td><td><input id="t2r4_c4" readonly></td><td><input id="t2r4_c5"></td><td><input id="t2r4_c6" readonly></td><td><input id="t2r4_c7"></td><td><input id="t2r4_c8" readonly></td><td><input id="t2r4_c9" readonly></td><td><input id="t2r4_c10" readonly></td><td><input id="t2r4_c11" readonly></td><td><input id="t2r4_c12"></td><td><input id="t2r4_c13" readonly></td><td><input id="t2r4_c14" readonly></td></tr>
+                    <tr><td class="l">6%税率 (5)</td><td><input id="t2r5_c1"></td><td><input id="t2r5_c2" readonly></td><td><input id="t2r5_c3"></td><td><input id="t2r5_c4" readonly></td><td><input id="t2r5_c5"></td><td><input id="t2r5_c6" readonly></td><td><input id="t2r5_c7"></td><td><input id="t2r5_c8" readonly></td><td><input id="t2r5_c9" readonly></td><td><input id="t2r5_c10" readonly></td><td><input id="t2r5_c11" readonly></td><td><input id="t2r5_c12"></td><td><input id="t2r5_c13" readonly></td><td><input id="t2r5_c14" readonly></td></tr>
+                    <tr><td class="l">即征即退货物及加工修理修配劳务 (6)</td><td><input id="t2r6_c1"></td><td><input id="t2r6_c2"></td><td><input id="t2r6_c3"></td><td><input id="t2r6_c4"></td><td><input id="t2r6_c5"></td><td><input id="t2r6_c6"></td><td><input id="t2r6_c7"></td><td><input id="t2r6_c8"></td><td><input id="t2r6_c9" readonly></td><td><input id="t2r6_c10" readonly></td><td><input id="t2r6_c11" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">即征即退服务、不动产和无形资产 (7)</td><td><input id="t2r7_c1"></td><td><input id="t2r7_c2"></td><td><input id="t2r7_c3"></td><td><input id="t2r7_c4"></td><td><input id="t2r7_c5"></td><td><input id="t2r7_c6"></td><td><input id="t2r7_c7"></td><td><input id="t2r7_c8"></td><td><input id="t2r7_c9" readonly></td><td><input id="t2r7_c10" readonly></td><td><input id="t2r7_c11" readonly></td><td><input id="t2r7_c12"></td><td><input id="t2r7_c13" readonly></td><td><input id="t2r7_c14" readonly></td></tr>
+                    <tr><td rowspan="8" class="c">二、<br>简易<br>计税<br>方法</td><td class="l">6%征收率 (8)</td><td><input id="t2r8_c1"></td><td><input id="t2r8_c2" readonly></td><td><input id="t2r8_c3"></td><td><input id="t2r8_c4" readonly></td><td><input id="t2r8_c5"></td><td><input id="t2r8_c6" readonly></td><td><input id="t2r8_c7"></td><td><input id="t2r8_c8" readonly></td><td><input id="t2r8_c9" readonly></td><td><input id="t2r8_c10" readonly></td><td><input id="t2r8_c11" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">5%征收率的货物及加工修理修配劳务(9a)</td><td><input id="t2r9a_c1"></td><td><input id="t2r9a_c2" readonly></td><td><input id="t2r9a_c3"></td><td><input id="t2r9a_c4" readonly></td><td><input id="t2r9a_c5"></td><td><input id="t2r9a_c6" readonly></td><td><input id="t2r9a_c7"></td><td><input id="t2r9a_c8" readonly></td><td><input id="t2r9a_c9" readonly></td><td><input id="t2r9a_c10" readonly></td><td><input id="t2r9a_c11" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">5%征收率的服务、不动产和无形资产(9b)</td><td><input id="t2r9b_c1"></td><td><input id="t2r9b_c2" readonly></td><td><input id="t2r9b_c3"></td><td><input id="t2r9b_c4" readonly></td><td><input id="t2r9b_c5"></td><td><input id="t2r9b_c6" readonly></td><td><input id="t2r9b_c7"></td><td><input id="t2r9b_c8" readonly></td><td><input id="t2r9b_c9" readonly></td><td><input id="t2r9b_c10" readonly></td><td><input id="t2r9b_c11" readonly></td><td><input id="t2r9b_c12"></td><td><input id="t2r9b_c13" readonly></td><td><input id="t2r9b_c14" readonly></td></tr>
+                    <tr><td class="l">4%征收率 (10)</td><td><input id="t2r10_c1"></td><td><input id="t2r10_c2"></td><td><input id="t2r10_c3"></td><td><input id="t2r10_c4"></td><td><input id="t2r10_c5"></td><td><input id="t2r10_c6"></td><td><input id="t2r10_c7"></td><td><input id="t2r10_c8"></td><td><input id="t2r10_c9" readonly></td><td><input id="t2r10_c10" readonly></td><td><input id="t2r10_c11" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">3%征收率的货物及加工修理修配劳务(11)</td><td><input id="t2r11_c1"></td><td><input id="t2r11_c2" readonly></td><td><input id="t2r11_c3"></td><td><input id="t2r11_c4" readonly></td><td><input id="t2r11_c5"></td><td><input id="t2r11_c6" readonly></td><td><input id="t2r11_c7"></td><td><input id="t2r11_c8" readonly></td><td><input id="t2r11_c9" readonly></td><td><input id="t2r11_c10" readonly></td><td><input id="t2r11_c11" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">3%征收率的服务、不动产和无形资产(12)</td><td><input id="t2r12_c1"></td><td><input id="t2r12_c2" readonly></td><td><input id="t2r12_c3"></td><td><input id="t2r12_c4" readonly></td><td><input id="t2r12_c5"></td><td><input id="t2r12_c6" readonly></td><td><input id="t2r12_c7"></td><td><input id="t2r12_c8" readonly></td><td><input id="t2r12_c9" readonly></td><td><input id="t2r12_c10" readonly></td><td><input id="t2r12_c11" readonly></td><td><input id="t2r12_c12"></td><td><input id="t2r12_c13" readonly></td><td><input id="t2r12_c14" readonly></td></tr>
+                    <tr><td class="l">即征即退货物及加工修理修配劳务 (14)</td><td><input id="t2r14_c1"></td><td><input id="t2r14_c2"></td><td><input id="t2r14_c3"></td><td><input id="t2r14_c4"></td><td><input id="t2r14_c5"></td><td><input id="t2r14_c6"></td><td><input id="t2r14_c7"></td><td><input id="t2r14_c8"></td><td><input id="t2r14_c9" readonly></td><td><input id="t2r14_c10" readonly></td><td><input id="t2r14_c11" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">即征即退服务、不动产和无形资产 (15)</td><td><input id="t2r15_c1"></td><td><input id="t2r15_c2"></td><td><input id="t2r15_c3"></td><td><input id="t2r15_c4"></td><td><input id="t2r15_c5"></td><td><input id="t2r15_c6"></td><td><input id="t2r15_c7"></td><td><input id="t2r15_c8"></td><td><input id="t2r15_c9" readonly></td><td><input id="t2r15_c10" readonly></td><td><input id="t2r15_c11" readonly></td><td><input id="t2r15_c12"></td><td><input id="t2r15_c13" readonly></td><td><input id="t2r15_c14" readonly></td></tr>
+                    <tr><td rowspan="2" class="c">三、<br>免抵<br>退税</td><td class="l">货物及加工修理修配劳务 (16)</td><td><input id="t2r16_c1"></td><td class="d">——</td><td><input id="t2r16_c3"></td><td class="d">——</td><td><input id="t2r16_c5"></td><td class="d">——</td><td><input id="t2r16_c7"></td><td class="d">——</td><td><input id="t2r16_c9" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">服务、不动产和无形资产 (17)</td><td><input id="t2r17_c1"></td><td class="d">——</td><td><input id="t2r17_c3"></td><td class="d">——</td><td><input id="t2r17_c5"></td><td class="d">——</td><td><input id="t2r17_c7"></td><td class="d">——</td><td><input id="t2r17_c9" readonly></td><td class="d">——</td><td class="d">——</td><td><input id="t2r17_c12"></td><td><input id="t2r17_c13" readonly></td><td class="d">——</td></tr>
+                    <tr><td rowspan="2" class="c">四、<br>免税</td><td class="l">货物及加工修理修配劳务 (18)</td><td class="d">——</td><td class="d">——</td><td><input id="t2r18_c3"></td><td class="d">——</td><td><input id="t2r18_c5"></td><td class="d">——</td><td><input id="t2r18_c7"></td><td class="d">——</td><td><input id="t2r18_c9" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">服务、不动产和无形资产 (19)</td><td class="d">——</td><td class="d">——</td><td><input id="t2r19_c3"></td><td class="d">——</td><td><input id="t2r19_c5"></td><td class="d">——</td><td><input id="t2r19_c7"></td><td class="d">——</td><td><input id="t2r19_c9" readonly></td><td class="d">——</td><td class="d">——</td><td><input id="t2r19_c12"></td><td><input id="t2r19_c13" readonly></td><td class="d">——</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="t3" class="tab-content">
+            <h2 class="form-title">增值税及附加税费申报表附列资料（二）</h2>
+            <div class="form-subtitle">（本期进项税额明细）</div>
+            <table>
+                <thead>
+                    <tr><th colspan="5" class="sec-title">一、申报抵扣的进项税额</th></tr>
+                    <tr><th>项 &nbsp; 项目</th><th>栏次</th><th>份数</th><th>金额</th><th>税额</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="l">（一）认证相符的增值税专用发票 (1=2+3)</td><td class="c">1</td><td><input id="t3r1_fn" readonly></td><td><input id="t3r1_je" readonly></td><td><input id="t3r1_se" readonly></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;其中：本期认证相符且本期申报抵扣</td><td class="c">2</td><td><input id="t3r2_fn"></td><td><input id="t3r2_je"></td><td><input id="t3r2_se"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;前期认证相符且本期申报抵扣</td><td class="c">3</td><td><input id="t3r3_fn"></td><td><input id="t3r3_je"></td><td><input id="t3r3_se"></td></tr>
+                    <tr><td class="l">（二）其他扣税凭证 (4=5+6+7+8a+8b)</td><td class="c">4</td><td><input id="t3r4_fn" readonly></td><td><input id="t3r4_je" readonly></td><td><input id="t3r4_se" readonly></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;其中：海关进口增值税专用缴款书</td><td class="c">5</td><td><input id="t3r5_fn"></td><td><input id="t3r5_je"></td><td><input id="t3r5_se"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;农产品收购发票或者销售发票</td><td class="c">6</td><td><input id="t3r6_fn"></td><td><input id="t3r6_je"></td><td><input id="t3r6_se"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;代扣代缴税收缴款凭证</td><td class="c">7</td><td><input id="t3r7_fn"></td><td class="d">——</td><td><input id="t3r7_se"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;加计扣除农产品进项税额</td><td class="c">8a</td><td><input id="t3r8a_fn"></td><td class="d">——</td><td><input id="t3r8a_se"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;其他</td><td class="c">8b</td><td><input id="t3r8b_fn"></td><td><input id="t3r8b_je"></td><td><input id="t3r8b_se"></td></tr>
+                    <tr><td class="l">（三）本期用于购建不动产的扣税凭证</td><td class="c">9</td><td><input id="t3r9_fn"></td><td><input id="t3r9_je"></td><td><input id="t3r9_se"></td></tr>
+                    <tr><td class="l">（四）本期用于抵扣的旅客运输服务扣税凭证</td><td class="c">10</td><td><input id="t3r10_fn"></td><td><input id="t3r10_je"></td><td><input id="t3r10_se"></td></tr>
+                    <tr><td class="l">（五）外贸企业进项税额抵扣证明</td><td class="c">11</td><td><input id="t3r11_fn"></td><td class="d">——</td><td><input id="t3r11_se"></td></tr>
+                    <tr><td class="l" style="font-weight:bold;">当期申报抵扣进项税额合计 (12=1+4+11)</td><td class="c">12</td><td><input id="t3r12_fn" readonly></td><td><input id="t3r12_je" readonly></td><td><input id="t3r12_se" readonly></td></tr>
+                </tbody>
+                <thead>
+                    <tr><th colspan="5" class="sec-title">二、进项税额转出额</th></tr>
+                    <tr><th colspan="3">项目</th><th>栏次</th><th>税额</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="3" class="l" style="font-weight:bold;">本期进项税额转出额 (13=14至23之和)</td><td class="c">13</td><td><input id="t3r13" readonly></td></tr>
+                    <tr><td colspan="3" class="l">&nbsp;&nbsp;&nbsp;&nbsp;其中：免税项目用</td><td class="c">14</td><td><input id="t3r14"></td></tr>
+                    <tr><td colspan="3" class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;集体福利、个人消费</td><td class="c">15</td><td><input id="t3r15"></td></tr>
+                    <tr><td colspan="3" class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;非正常损失</td><td class="c">16</td><td><input id="t3r16"></td></tr>
+                    <tr><td colspan="3" class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;简易计税方法征税项目用</td><td class="c">17</td><td><input id="t3r17"></td></tr>
+                    <tr><td colspan="3" class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;免抵退税办法不得抵扣的进项税额</td><td class="c">18</td><td><input id="t3r18"></td></tr>
+                    <tr><td colspan="3" class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;纳税检查调减进项税额</td><td class="c">19</td><td><input id="t3r19"></td></tr>
+                    <tr><td colspan="3" class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;红字专用发票信息表注明的进项税额</td><td class="c">20</td><td><input id="t3r20"></td></tr>
+                    <tr><td colspan="3" class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;异常凭证转出进项税额</td><td class="c">23a</td><td><input id="t3r23a"></td></tr>
+                    <tr><td colspan="3" class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;其他应作进项税额转出的情形</td><td class="c">23b</td><td><input id="t3r23b"></td></tr>
+                </tbody>
+                <thead>
+                    <tr><th colspan="5" class="sec-title">三、待抵扣进项税额</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="l">（一）认证相符的增值税专用发票</td><td class="c">24</td><td class="d">——</td><td class="d">——</td><td class="d">——</td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;期初已认证相符但未申报抵扣</td><td class="c">25</td><td><input></td><td><input></td><td><input></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;本期认证相符且本期未申报抵扣</td><td class="c">26</td><td><input></td><td><input></td><td><input></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;期末已认证相符但未申报抵扣</td><td class="c">27</td><td><input></td><td><input></td><td><input></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;其中：按照税法规定不允许抵扣</td><td class="c">28</td><td><input></td><td><input></td><td><input></td></tr>
+                    <tr><td class="l">（二）其他扣税凭证</td><td class="c">29=30至33之和</td><td><input id="t3r29_fn" readonly></td><td><input id="t3r29_je" readonly></td><td><input id="t3r29_se" readonly></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;其中：海关进口增值税专用缴款书</td><td class="c">30</td><td><input id="t3r30_fn"></td><td><input id="t3r30_je"></td><td><input id="t3r30_se"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;农产品收购或者销售票据</td><td class="c">31</td><td><input id="t3r31_fn"></td><td><input id="t3r31_je"></td><td><input id="t3r31_se"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;代扣代缴税收缴款凭证</td><td class="c">32</td><td><input id="t3r32_fn"></td><td><input id="t3r32_je"></td><td><input id="t3r32_se"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;其他</td><td class="c">33</td><td><input id="t3r33_fn"></td><td><input id="t3r33_je"></td><td><input id="t3r33_se"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;其中：<input style="width:200px;text-align:left;margin-left:5px;"></td><td class="c">34</td><td><input></td><td><input></td><td><input></td></tr>
+                </tbody>
+                <thead><tr><th colspan="5" class="sec-title">四、其他</th></tr></thead>
+                <tbody>
+                    <tr><td class="l">本期认证相符的增值税专用发票 (其他类)</td><td class="c">35</td><td><input></td><td><input></td><td><input></td></tr>
+                    <tr><td class="l">代扣代缴税额 (其他类)</td><td class="c">36</td><td><input></td><td class="d">——</td><td><input></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="t4" class="tab-content">
+            <h2 class="form-title">增值税及附加税费申报表附列资料（三）</h2>
+            <div class="form-subtitle">（服务、不动产和无形资产扣除项目明细）</div>
+            <table>
+                <thead>
+                    <tr><th rowspan="2">项目及栏次</th><th rowspan="2">本期价税合计额<br>（免税销售额）</th><th colspan="5">服务、不动产和无形资产扣除项目</th></tr>
+                    <tr><th>期初余额</th><th>本期发生额</th><th>本期应扣除金额</th><th>本期实际扣除金额</th><th>期末余额</th></tr>
+                    <tr style="background:#DEEBF7;font-size:11px;"><th></th><th>1</th><th>2</th><th>3</th><th>4=2+3</th><th>5</th><th>6=4-5</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="l">13%税率的项目 (1)</td><td><input id="t4r1_c1"></td><td><input id="t4r1_c2"></td><td><input id="t4r1_c3"></td><td><input id="t4r1_c4" readonly></td><td><input id="t4r1_c5"></td><td><input id="t4r1_c6" readonly></td></tr>
+                    <tr><td class="l">9%税率的项目 (2)</td><td><input id="t4r2_c1"></td><td><input id="t4r2_c2"></td><td><input id="t4r2_c3"></td><td><input id="t4r2_c4" readonly></td><td><input id="t4r2_c5"></td><td><input id="t4r2_c6" readonly></td></tr>
+                    <tr><td class="l">6%税率的项目（不含金融商品转让）(3)</td><td><input id="t4r3_c1"></td><td><input id="t4r3_c2"></td><td><input id="t4r3_c3"></td><td><input id="t4r3_c4" readonly></td><td><input id="t4r3_c5"></td><td><input id="t4r3_c6" readonly></td></tr>
+                    <tr><td class="l">6%税率的金融商品转让项目 (4)</td><td><input id="t4r4_c1"></td><td><input id="t4r4_c2"></td><td><input id="t4r4_c3"></td><td><input id="t4r4_c4" readonly></td><td><input id="t4r4_c5"></td><td><input id="t4r4_c6" readonly></td></tr>
+                    <tr><td class="l">5%征收率的项目 (5)</td><td><input id="t4r5_c1"></td><td><input id="t4r5_c2"></td><td><input id="t4r5_c3"></td><td><input id="t4r5_c4" readonly></td><td><input id="t4r5_c5"></td><td><input id="t4r5_c6" readonly></td></tr>
+                    <tr><td class="l">3%征收率的项目 (6)</td><td><input id="t4r6_c1"></td><td><input id="t4r6_c2"></td><td><input id="t4r6_c3"></td><td><input id="t4r6_c4" readonly></td><td><input id="t4r6_c5"></td><td><input id="t4r6_c6" readonly></td></tr>
+                    <tr><td class="l">免抵退税的项目 (7)</td><td><input id="t4r7_c1"></td><td><input id="t4r7_c2"></td><td><input id="t4r7_c3"></td><td><input id="t4r7_c4" readonly></td><td><input id="t4r7_c5"></td><td><input id="t4r7_c6" readonly></td></tr>
+                    <tr><td class="l">免税的项目 (8)</td><td><input id="t4r8_c1"></td><td><input id="t4r8_c2"></td><td><input id="t4r8_c3"></td><td><input id="t4r8_c4" readonly></td><td><input id="t4r8_c5"></td><td><input id="t4r8_c6" readonly></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="t5" class="tab-content">
+            <h2 class="form-title">增值税及附加税费申报表附列资料（四）</h2>
+            <div class="form-subtitle">（税额抵减情况表）</div>
+            <table>
+                <thead>
+                    <tr><th colspan="7" class="sec-title">一、税额抵减情况</th></tr>
+                    <tr><th>序号</th><th>抵减项目</th><th>期初余额</th><th>本期发生额</th><th>本期应抵减税额</th><th>本期实际抵减税额</th><th>期末余额</th></tr>
+                    <tr style="background:#DEEBF7;font-size:11px;"><th></th><th></th><th>1</th><th>2</th><th>3=1+2</th><th>4</th><th>5=3-4</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="c">1</td><td class="l">增值税税控系统专用设备费及技术维护费</td><td><input id="dj1_c1"></td><td><input id="dj1_c2"></td><td><input id="dj1_c3" readonly></td><td><input id="dj1_c4"></td><td><input id="dj1_c5" readonly></td></tr>
+                    <tr><td class="c">2</td><td class="l">分支机构预征缴纳税款</td><td><input id="dj2_c1"></td><td><input id="dj2_c2"></td><td><input id="dj2_c3" readonly></td><td><input id="dj2_c4"></td><td><input id="dj2_c5" readonly></td></tr>
+                    <tr><td class="c">3</td><td class="l">建筑服务预征缴纳税款</td><td><input id="dj3_c1"></td><td><input id="dj3_c2"></td><td><input id="dj3_c3" readonly></td><td><input id="dj3_c4"></td><td><input id="dj3_c5" readonly></td></tr>
+                    <tr><td class="c">4</td><td class="l">销售不动产预征缴纳税款</td><td><input id="dj4_c1"></td><td><input id="dj4_c2"></td><td><input id="dj4_c3" readonly></td><td><input id="dj4_c4"></td><td><input id="dj4_c5" readonly></td></tr>
+                    <tr><td class="c">5</td><td class="l">出租不动产预征缴纳税款</td><td><input id="dj5_c1"></td><td><input id="dj5_c2"></td><td><input id="dj5_c3" readonly></td><td><input id="dj5_c4"></td><td><input id="dj5_c5" readonly></td></tr>
+                </tbody>
+                <thead>
+                    <tr><th colspan="8" class="sec-title">二、加计抵减情况</th></tr>
+                    <tr><th>序号</th><th>加计抵减项目</th><th>期初余额</th><th>本期发生额</th><th>本期调减额</th><th>本期可抵减额</th><th>本期实际抵减额</th><th>期末余额</th></tr>
+                    <tr style="background:#DEEBF7;font-size:11px;"><th></th><th></th><th>1</th><th>2</th><th>3</th><th>4=1+2-3</th><th>5</th><th>6=4-5</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="c">6</td><td class="l">一般项目加计抵减额计算</td><td><input id="jj1_c1"></td><td><input id="jj1_c2"></td><td><input id="jj1_c3"></td><td><input id="jj1_c4" readonly></td><td><input id="jj1_c5"></td><td><input id="jj1_c6" readonly></td></tr>
+                    <tr><td class="c">7</td><td class="l">即征即退项目加计抵减额计算</td><td><input id="jj2_c1"></td><td><input id="jj2_c2"></td><td><input id="jj2_c3"></td><td><input id="jj2_c4" readonly></td><td><input id="jj2_c5"></td><td><input id="jj2_c6" readonly></td></tr>
+                    <tr><td class="c">8</td><td class="l" style="font-weight:bold;">合计</td><td><input id="jj_total_c1" readonly></td><td><input id="jj_total_c2" readonly></td><td><input id="jj_total_c3" readonly></td><td><input id="jj_total_c4" readonly></td><td><input id="jj_total_c5" readonly></td><td><input id="jj_total_c6" readonly></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="t6" class="tab-content">
+            <h2 class="form-title">增值税及附加税费申报表附列资料（五）</h2>
+            <div class="form-subtitle">（附加税费情况表）</div>
+            <table>
+                <thead>
+                    <tr><th rowspan="2">税（费）种</th><th colspan="3">计税（费）依据</th><th rowspan="2">税率(%)</th><th rowspan="2">应纳税额</th><th colspan="2">本期减免税（费）额</th><th colspan="2">产教融合型企业抵免</th><th rowspan="2">已缴税额</th><th rowspan="2">应补(退)税额</th></tr>
+                    <tr><th>增值税税额</th><th>增值税免抵额</th><th>留抵扣除额</th><th>减免代码</th><th>减免额</th><th>减免代码</th><th>本期抵免金</th></tr>
+                    <tr style="background:#DEEBF7;font-size:11px;"><th>列次</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5=(1+2-3)*4</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11=5-7-9-10</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="l">城市维护建设税 (1)</td><td><input id="t5c0_1" readonly></td><td><input id="t5c0_2"></td><td><input id="t5c0_3"></td><td><input id="t5c0_4" value="0.07" data-def="0.07"></td><td><input id="t5c0_5" readonly></td><td><input id="t5c0_6"></td><td><input id="t5c0_7"></td><td><input id="t5c0_8"></td><td><input id="t5c0_9"></td><td><input id="t5c0_10"></td><td><input id="t5c0_11" readonly></td></tr>
+                    <tr><td class="l">教育费附加 (2)</td><td><input id="t5c1_1" readonly></td><td><input id="t5c1_2"></td><td><input id="t5c1_3"></td><td><input id="t5c1_4" value="0.03" data-def="0.03"></td><td><input id="t5c1_5" readonly></td><td><input id="t5c1_6"></td><td><input id="t5c1_7"></td><td><input id="t5c1_8"></td><td><input id="t5c1_9"></td><td><input id="t5c1_10"></td><td><input id="t5c1_11" readonly></td></tr>
+                    <tr><td class="l">地方教育附加 (3)</td><td><input id="t5c2_1" readonly></td><td><input id="t5c2_2"></td><td><input id="t5c2_3"></td><td><input id="t5c2_4" value="0.02" data-def="0.02"></td><td><input id="t5c2_5" readonly></td><td><input id="t5c2_6"></td><td><input id="t5c2_7"></td><td><input id="t5c2_8"></td><td><input id="t5c2_9"></td><td><input id="t5c2_10"></td><td><input id="t5c2_11" readonly></td></tr>
+                    <tr><td class="l" style="font-weight:bold;">合计 (4)</td><td class="d">——</td><td class="d">——</td><td class="d">——</td><td class="d">——</td><td><input id="t5c3_5" readonly></td><td class="d">——</td><td class="d">——</td><td class="d">——</td><td class="d">——</td><td class="d">——</td><td><input id="t5c3_11" readonly></td></tr>
+                </tbody>
+                <tbody>
+                    <tr><td colspan="5" class="l">本期是否适用试点建设培育产教融合型企业抵免政策</td><td colspan="7" class="l"><input type="radio" name="r1">是 &nbsp;&nbsp;&nbsp; <input type="radio" name="r1">否</td></tr>
+                    <tr><td colspan="8" class="l">当期新增投资额 (5)</td><td colspan="4"><input></td></tr>
+                    <tr><td colspan="8" class="l">上期留抵可抵免金额 (6)</td><td colspan="4"><input></td></tr>
+                    <tr><td colspan="8" class="l">结转下期可抵免金额 (7)</td><td colspan="4"><input></td></tr>
+                    <tr><td colspan="12" class="l" style="background:#f4f7fa;font-weight:bold;color:var(--blue)">可用于扣除的增值税留抵退税额使用情况</td></tr>
+                    <tr><td colspan="8" class="l">当期新增可用于扣除的留抵退税额 (8)</td><td colspan="4"><input></td></tr>
+                    <tr><td colspan="8" class="l">上期结存可用于扣除的留抵退税额 (9)</td><td colspan="4"><input></td></tr>
+                    <tr><td colspan="8" class="l">结转下期可用于扣除的留抵退税额 (10)</td><td colspan="4"><input></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="t7" class="tab-content">
+            <h2 class="form-title">增值税减免税申报明细表</h2>
+            <div class="form-subtitle">税款所属时间：自 年 月 日至 年 月 日</div>
+            <table>
+                <thead>
+                    <tr><th colspan="7" class="sec-title">一、减税项目</th></tr>
+                    <tr><th>减税性质代码及名称</th><th>栏次</th><th>期初余额</th><th>本期发生额</th><th>本期应抵减税额</th><th>本期实际抵减税额</th><th>期末余额</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="l">合计</td><td class="c">1</td><td><input id="jm_total_c2" readonly></td><td><input id="jm_total_c3" readonly></td><td><input id="jm_total_c4" readonly></td><td><input id="jm_total_c5" readonly></td><td><input id="jm_total_c6" readonly></td></tr>
+                    <tr><td><input style="width:100%;text-align:left;"></td><td class="c">2</td><td><input id="jm1_c2"></td><td><input id="jm1_c3"></td><td><input id="jm1_c4" readonly></td><td><input id="jm1_c5"></td><td><input id="jm1_c6" readonly></td></tr>
+                    <tr><td><input style="width:100%;text-align:left;"></td><td class="c">3</td><td><input id="jm2_c2"></td><td><input id="jm2_c3"></td><td><input id="jm2_c4" readonly></td><td><input id="jm2_c5"></td><td><input id="jm2_c6" readonly></td></tr>
+                    <tr><td><input style="width:100%;text-align:left;"></td><td class="c">4</td><td><input id="jm3_c2"></td><td><input id="jm3_c3"></td><td><input id="jm3_c4" readonly></td><td><input id="jm3_c5"></td><td><input id="jm3_c6" readonly></td></tr>
+                </tbody>
+                <thead>
+                    <tr><th colspan="7" class="sec-title">二、免税项目</th></tr>
+                    <tr><th>免税性质代码及名称</th><th>栏次</th><th>免税销售额</th><th>本期实际扣除金额</th><th>扣除后免税销售额</th><th>免税额对应进项税</th><th>免税额</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="l" style="font-weight:bold;">合计</td><td class="c">7</td><td><input id="mm_total_c2" readonly></td><td><input id="mm_total_c3" readonly></td><td><input id="mm_total_c4" readonly></td><td><input id="mm_total_c5" readonly></td><td><input id="mm_total_c6" readonly></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;出口免税</td><td class="c">8</td><td><input id="mm0_c2"></td><td><input id="mm0_c3"></td><td><input id="mm0_c4" readonly></td><td><input id="mm0_c5"></td><td><input id="mm0_c6"></td></tr>
+                    <tr><td class="l">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;其中：跨境服务</td><td class="c">9</td><td><input id="mm1_c2"></td><td><input id="mm1_c3"></td><td><input id="mm1_c4" readonly></td><td><input id="mm1_c5"></td><td><input id="mm1_c6"></td></tr>
+                    <tr><td><input style="width:100%;text-align:left;"></td><td class="c">10</td><td><input id="mm2_c2"></td><td><input id="mm2_c3"></td><td><input id="mm2_c4" readonly></td><td><input id="mm2_c5"></td><td><input id="mm2_c6"></td></tr>
+                    <tr><td><input style="width:100%;text-align:left;"></td><td class="c">11</td><td><input id="mm3_c2"></td><td><input id="mm3_c3"></td><td><input id="mm3_c4" readonly></td><td><input id="mm3_c5"></td><td><input id="mm3_c6"></td></tr>
+                    <tr><td><input style="width:100%;text-align:left;"></td><td class="c">12</td><td><input id="mm4_c2"></td><td><input id="mm4_c3"></td><td><input id="mm4_c4" readonly></td><td><input id="mm4_c5"></td><td><input id="mm4_c6"></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<script>
+const domCache=Object.create(null);
+const g=i=>domCache[i]||(domCache[i]=document.getElementById(i));
+const v=i=>{let e=g(i);return e&&e.value?parseFloat(e.value.replace(/,/g,''))||0:0;};
+const s=(i,a)=>{
+    let e=g(i);
+    if(e){
+        let f=a===''||isNaN(a)?'':Number(a).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+        if(e.value!==f) {
+            e.value=f;
+            if(typeof resizeInput === 'function') resizeInput(e);
+        }
+    }
+};
+
+// 展开/隐藏导航栏
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const btn = document.getElementById('side-toggle-btn');
+    sb.classList.toggle('collapsed');
+    if(sb.classList.contains('collapsed')) {
+        btn.style.display = 'block';
+    } else {
+        btn.style.display = 'none';
+    }
+}
+
+function resetData(){
+    if(!confirm("确定要清空所有表格数据吗？"))return;
+    document.querySelectorAll('table input:not([type="radio"])').forEach(e=>{
+        if(e.dataset.def){
+            e.value=e.dataset.def;
+        }else {
+            e.value='';
+        }
+        e.removeAttribute('data-m');
+        if(typeof resizeInput === 'function') {
+            formatInput(e);
+            resizeInput(e);
+        }
+    });
+    document.querySelectorAll('table input[type="radio"]').forEach(e=>e.checked=false);
+}
+
+function exportToExcel(){
+    if(typeof XLSX==='undefined')return alert("Excel库未加载");
+    let wb=XLSX.utils.book_new();
+    [{i:'t1',n:'主表(申报表)'},{i:'t2',n:'附列资料(一)'},{i:'t3',n:'附列资料(二)'},{i:'t4',n:'附列资料(三)'},{i:'t5',n:'附列资料(四)'},{i:'t6',n:'附列资料(五)'},{i:'t7',n:'减免税明细表'}].forEach(t=>{
+        let tb=g(t.i).querySelector('table');if(!tb)return;
+        let ct=tb.cloneNode(true), oi=tb.querySelectorAll('input'), ci=ct.querySelectorAll('input');
+        for(let i=0;i<oi.length;i++){
+            let vl=oi[i].type==='radio'?(oi[i].checked?'(选中)':''):oi[i].value||'';
+            ci[i].parentNode.replaceChild(document.createTextNode(vl),ci[i]);
+        }
+        let ws = XLSX.utils.table_to_sheet(ct,{raw:true});
+        
+        // 遍历单元格，添加实线边框样式
+        for (let key in ws) {
+            if (key[0] === '!') continue; // 跳过非单元格属性
+            ws[key].s = {
+                border: {
+                    top: { style: 'thin', color: { rgb: "000000" } },
+                    bottom: { style: 'thin', color: { rgb: "000000" } },
+                    left: { style: 'thin', color: { rgb: "000000" } },
+                    right: { style: 'thin', color: { rgb: "000000" } }
+                },
+                alignment: { vertical: "center" }
+            };
+        }
+        
+        XLSX.utils.book_append_sheet(wb, ws, t.n);
+    });
+    XLSX.writeFile(wb,"一般纳税人增值税模拟申报表_导出.xlsx");
+}
+
+function switchTab(e,id){
+    document.querySelectorAll('.tab-content,.nav-item').forEach(el=>el.classList.remove('active'));
+    g(id).classList.add('active'); 
+    e.currentTarget.classList.add('active'); 
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function uT1fT3(){
+    if(g('t1r12_c1')) s('t1r12_c1', Math.max(0, v('t3r12_se') - v('t1r12_c3')));
+    if(g('t1r14_c1')) s('t1r14_c1', Math.max(0, v('t3r13') - v('t1r14_c3')));
+    uT1All();
+}
+
+function uT1fT2(){
+    let r=(n,c)=>v(`t2r${n}_c${c}`);
+    let t2_1_5=r(1,9)+r(2,9)+r(3,9)+r(4,9)+r(5,9), t2_6_7=r(6,9)+r(7,9);
+    if(g('t1r1_c1')){s('t1r1_c1',t2_1_5-t2_6_7); s('t1r1_c3',t2_6_7);}
+    let t2_8_13=r(8,9)+r('9a',9)+r('9b',9)+r(10,9)+r(11,9)+r(12,9), t2_14_15=r(14,9)+r(15,9);
+    if(g('t1r5_c1')){s('t1r5_c1',t2_8_13-t2_14_15); s('t1r5_c3',t2_14_15);}
+    if(g('t1r7_c1'))s('t1r7_c1',r(16,9)+r(17,9)); if(g('t1r8_c1'))s('t1r8_c1',r(18,9)+r(19,9));
+    if(g('t1r11_c1')){s('t1r11_c1',(r(1,10)+r(3,10)-r(6,10))+(r(2,14)+r(4,14)+r(5,14)-r(7,14))); s('t1r11_c3',r(6,10)+r(7,14));}
+    
+    // 主表第21栏公式 (如果用户未手动修改则自动计算)
+    let el21c1 = g('t1r21_c1'), el21c3 = g('t1r21_c3');
+    let t1r21_c1_v = (r(8,10)+r('9a',10)+r(10,10)+r(11,10)-r(14,10)) + (r('9b',14)+r(12,14)-r(15,14));
+    let t1r21_c3_v = r(14,10) + r(15,14);
+    if(el21c1 && el21c1.getAttribute('data-m') !== '1') s('t1r21_c1', t1r21_c1_v);
+    if(el21c3 && el21c3.getAttribute('data-m') !== '1') s('t1r21_c3', t1r21_c3_v);
+
+    uT1All();
+}
+
+function uT1All(){
+    [1,3].forEach(c=>{
+        let r=n=>v(`t1r${n}_c${c}`);
+        if(g(`t1r17_c${c}`))s(`t1r17_c${c}`,r(12)+r(13)-r(14)-r(15)+r(16));
+        let m=g(`t1r18_c${c}`);if(m&&m.getAttribute('data-m')!=='1')s(`t1r18_c${c}`,Math.min(r(17),r(11)));
+        if(g(`t1r19_c${c}`))s(`t1r19_c${c}`,r(11)-r(18)-(c===1?v('jj1_c5'):v('jj2_c5')));
+        if(g(`t1r20_c${c}`))s(`t1r20_c${c}`,r(17)-r(18));
+        if(g(`t1r24_c${c}`))s(`t1r24_c${c}`,r(19)+r(21)-r(23));
+        if(g(`t1r27_c${c}`))s(`t1r27_c${c}`,r(28)+r(29)+r(30)+r(31));
+        if(g(`t1r32_c${c}`))s(`t1r32_c${c}`,r(24)+r(25)+r(26)-r(27));
+        if(g(`t1r34_c${c}`))s(`t1r34_c${c}`,r(24)-r(28)-r(29));
+        if(g(`t1r38_c${c}`))s(`t1r38_c${c}`,r(16)+r(22)+r(36)-r(37));
+    });
+    for(let i=1;i<=41;i++){if(g(`t1r${i}_c1`)&&g(`t1r${i}_c2`))s(`t1r${i}_c2`,v(`t1r${i}_c1`));if(g(`t1r${i}_c3`)&&g(`t1r${i}_c4`))s(`t1r${i}_c4`,v(`t1r${i}_c3`));}
+    if(g('t5c0_1')){['t5c0_1','t5c1_1','t5c2_1'].forEach(i=>s(i,v('t1r34_c1'))); uT5();}
+}
+
+const R2={1:.13,2:.13,3:.09,4:.09,5:.06,8:.06,'9a':.05,'9b':.05,11:.03,12:.03}, D2={2:.13,4:.09,5:.06,7:.13,'9b':.05,12:.03,15:.13,17:0,19:0};
+function cT2(p){
+    let k=p.replace('t2r',''), c1=v(p+'_c1'),c3=v(p+'_c3'),c5=v(p+'_c5'),c7=v(p+'_c7'),c9=c1+c3+c5+c7; s(p+'_c9',c9);
+    if(R2[k]!==undefined){let r=R2[k];s(p+'_c2',c1*r);s(p+'_c4',c3*r);s(p+'_c6',c5*r);s(p+'_c8',c7*r);}
+    let c10=v(p+'_c2')+v(p+'_c4')+v(p+'_c6')+v(p+'_c8'); s(p+'_c10',c10); s(p+'_c11',c9+c10);
+    if(D2[k]!==undefined){let c13=(c9+c10)-v(p+'_c12'); s(p+'_c13',c13); if(D2[k]>0)s(p+'_c14',c13/(1+D2[k])*D2[k]);}
+}
+
+function uT3(){
+    let r=(n,c)=>v(`t3r${n}_${c}`);
+    s('t3r1_fn',r(2,'fn')+r(3,'fn')); s('t3r1_je',r(2,'je')+r(3,'je')); s('t3r1_se',r(2,'se')+r(3,'se'));
+    s('t3r4_fn',r(5,'fn')+r(6,'fn')+r(7,'fn')+r('8a','fn')+r('8b','fn')); s('t3r4_je',r(5,'je')+r(6,'je')+r('8b','je')); s('t3r4_se',r(5,'se')+r(6,'se')+r(7,'se')+r('8a','se')+r('8b','se'));
+    s('t3r12_fn',r(1,'fn')+r(4,'fn')+r(11,'fn')); s('t3r12_je',r(1,'je')+r(4,'je')); s('t3r12_se',r(1,'se')+r(4,'se')+r(11,'se'));
+    s('t3r13',r(14)+r(15)+r(16)+r(17)+r(18)+r(19)+r(20)+r('23a')+r('23b'));
+    if(g('t3r29_fn'))['fn','je','se'].forEach(x=>s(`t3r29_${x}`,r(30,x)+r(31,x)+r(32,x)+r(33,x)));
+    uT1fT3();
+}
+
+function uT4(){for(let i=1;i<=8;i++){let x=v(`t4r${i}_c2`)+v(`t4r${i}_c3`);s(`t4r${i}_c4`,x);s(`t4r${i}_c6`,x-v(`t4r${i}_c5`));}}
+function uDJ(){for(let i=1;i<=5;i++){let x=v(`dj${i}_c1`)+v(`dj${i}_c2`);s(`dj${i}_c3`,x);s(`dj${i}_c5`,x-v(`dj${i}_c4`));}}
+function uJJ(){
+    let a=[0,0,0,0,0,0];
+    for(let i=1;i<=2;i++){
+        let d=[v(`jj${i}_c1`),v(`jj${i}_c2`),v(`jj${i}_c3`)],c5=v(`jj${i}_c5`),c4=d[0]+d[1]-d[2];
+        s(`jj${i}_c4`,c4);s(`jj${i}_c6`,c4-c5);
+        a[0]+=d[0];a[1]+=d[1];a[2]+=d[2];a[3]+=c4;a[4]+=c5;a[5]+=c4-c5;
+    }
+    a.forEach((x,i)=>s(`jj_total_c${i+1}`,x)); uT1All();
+}
+function uT5(){
+    [0,1,2].forEach(r=>{s(`t5c${r}_5`,(v(`t5c${r}_1`)+v(`t5c${r}_2`)-v(`t5c${r}_3`))*v(`t5c${r}_4`)); s(`t5c${r}_11`,v(`t5c${r}_5`)-v(`t5c${r}_7`)-v(`t5c${r}_9`)-v(`t5c${r}_10`));});
+    s('t5c3_5',v('t5c0_5')+v('t5c1_5')+v('t5c2_5')); s('t5c3_11',v('t5c0_11')+v('t5c1_11')+v('t5c2_11'));
+    [39,40,41].forEach((x,i)=>{s(`t1r${x}_c1`,v(`t5c${i}_11`));s(`t1r${x}_c2`,v(`t1r${x}_c1`));});
+}
+function uJM(){
+    let a=[0,0,0,0,0];
+    for(let i=1;i<=3;i++){let d=[v(`jm${i}_c2`),v(`jm${i}_c3`)],c5=v(`jm${i}_c5`),c4=d[0]+d[1];s(`jm${i}_c4`,c4);s(`jm${i}_c6`,c4-c5);a[0]+=d[0];a[1]+=d[1];a[2]+=c4;a[3]+=c5;a[4]+=c4-c5;}
+    a.forEach((x,i)=>s(`jm_total_c${i+2}`,x));
+    let t=g('t1r23_c1');if(t&&t.getAttribute('data-m')!=='1'){s('t1r23_c1',v('jm_total_c5'));uT1All();}
+}
+function uMM(){
+    let a=[0,0,0,0,0];
+    for(let i=0;i<=4;i++){let d=[v(`mm${i}_c2`),v(`mm${i}_c3`)],c4=d[0]-d[1];s(`mm${i}_c4`,c4);a[0]+=d[0];a[1]+=d[1];a[2]+=c4;a[3]+=v(`mm${i}_c5`);a[4]+=v(`mm${i}_c6`);}
+    a.forEach((x,i)=>s(`mm_total_c${i+2}`,x));
+}
+
+document.addEventListener('input',e=>{
+    let id=e.target.id;if(!id)return;
+    // 允许手动覆盖公式标记
+    if(['t1r18_c1','t1r18_c3','t1r23_c1','t1r21_c1','t1r21_c3'].includes(id))e.target.setAttribute('data-m',e.target.value.trim()?'1':'');
+    let p3=id.substring(0,3), p2=id.substring(0,2);
+    if(p3==='t1r') {
+        if(id==='t1r12_c3' || id==='t1r14_c3') uT1fT3();
+        else uT1All();
+    }
+    else if(p3==='t2r'){let p=id.split('_')[0];if('1,2,3,4,5,6,7,8,9a,9b,10,11,12,14,15,16,17,18,19'.split(',').includes(p.replace('t2r','')))cT2(p);uT1fT2();}
+    else if(p3==='t3r')uT3(); else if(p3==='t4r')uT4(); else if(p3==='t5c')uT5();
+    else if(p2==='dj'&&!id.startsWith('jj'))uDJ(); else if(p2==='jj'&&!id.includes('tot'))uJJ();
+    else if(p2==='jm'&&!id.includes('tot'))uJM(); else if(p2==='mm'&&!id.includes('tot'))uMM();
+});
+
+// 动态调整宽度和格式化逻辑
+function formatInput(el) {
+    let vl = el.value.replace(/,/g, '').trim();
+    if(vl !== '' && !isNaN(vl)) {
+        el.value = Number(vl).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    resizeInput(el);
+}
+
+function resizeInput(el) {
+    let len = el.value.length || (el.placeholder ? el.placeholder.length : 4);
+    el.style.width = Math.max(90, len * 8 + 20) + 'px'; // 动态扩张
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('table input:not([type="radio"])').forEach(e => {
+        if(!e.readOnly && !e.value) e.setAttribute('placeholder', '0.00');
+        
+        e.addEventListener('blur', function() { formatInput(this); });
+        
+        e.addEventListener('focus', function() {
+            if(this.value && !isNaN(this.value.replace(/,/g, ''))) {
+                this.value = this.value.replace(/,/g, '');
+            }
+            resizeInput(this);
+        });
+        
+        e.addEventListener('input', function() { resizeInput(this); });
+        
+        // 初始化时触发一次强制格式化与宽自适应
+        if(e.value) formatInput(e);
+        else resizeInput(e);
+    });
+});
+</script>
+</body>
+</html>
